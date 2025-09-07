@@ -267,6 +267,6 @@ class KotoRPC
     public function isSynced()
     {
         $info = $this->getBlockchainInfo();
-        return !$info['initialblockdownload'] ?? false;
+        return !($info['initialblockdownload'] ?? false);
     }
 }
