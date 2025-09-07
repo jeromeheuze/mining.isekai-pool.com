@@ -671,7 +671,7 @@ class StratumServer
             $this->log("DEBUG: Share inserted with ID: " . $shareId);
             
             // Update worker statistics
-            $this->db->execute("
+            $this->db->query("
                 UPDATE workers 
                 SET shares_submitted = shares_submitted + 1,
                     shares_accepted = shares_accepted + 1,
@@ -680,7 +680,7 @@ class StratumServer
             ", ['worker_id' => $client['worker_id']]);
             
             // Update user statistics
-            $this->db->execute("
+            $this->db->query("
                 UPDATE users 
                 SET total_shares = total_shares + 1,
                     last_seen = NOW()
