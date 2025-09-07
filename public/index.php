@@ -30,7 +30,7 @@ if (file_exists($configFile)) {
 if (empty($config)) {
     $config = [
         'pool' => [
-            'name' => 'Isekai Yenten Pool',
+            'name' => 'Isekai Pool',
             'url' => 'https://mining.isekai-pool.com',
             'fee_percent' => 1.0,
             'minimum_payout' => 0.1,
