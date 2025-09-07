@@ -652,6 +652,7 @@ class StratumServer
             $shareDifficulty = $client['difficulty'];
             
             // Insert share into database
+            $this->log("DEBUG: Inserting share into database for user_id: " . $client['user_id'] . ", worker_id: " . $client['worker_id']);
             $shareId = $this->db->insert('shares', [
                 'user_id' => $client['user_id'],
                 'worker_id' => $client['worker_id'],
@@ -667,6 +668,7 @@ class StratumServer
                 'processed_at' => date('Y-m-d H:i:s'),
                 'reward' => 0.00000000
             ]);
+            $this->log("DEBUG: Share inserted with ID: " . $shareId);
             
             // Update worker statistics
             $this->db->execute("
