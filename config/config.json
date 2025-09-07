@@ -5,7 +5,7 @@
         "port": 3306,
         "name": "yenten_pool",
         "username": "pool_user",
-        "password": "your_secure_password"
+        "password": "secure_password_123"
     },
     "pool": {
         "name": "Isekai Yenten Pool",

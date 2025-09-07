@@ -24,9 +24,36 @@ use YentenPool\Config\ConfigManager;
 use YentenPool\Database\Database;
 
 try {
-    // Initialize configuration and database
-    $config = ConfigManager::getInstance();
-    $db = Database::getInstance();
+    // Initialize configuration and database with error handling
+    $config = null;
+    $db = null;
+    
+    try {
+        $config = ConfigManager::getInstance();
+    } catch (Exception $e) {
+        error_log("ConfigManager error: " . $e->getMessage());
+        // Use default config
+        $config = new stdClass();
+        $config->getPoolConfig = function() {
+            return [
+                'name' => 'Isekai Yenten Pool',
+                'url' => 'https://mining.isekai-pool.com',
+                'fee_percent' => 1.0,
+                'minimum_payout' => 0.1,
+                'payout_threshold' => 0.5,
+                'block_reward' => 50.0,
+                'stratum_ports' => [3333, 4444, 5555]
+            ];
+        };
+    }
+    
+    try {
+        $db = Database::getInstance();
+    } catch (Exception $e) {
+        error_log("Database error: " . $e->getMessage());
+        sendError('Database connection failed', 500);
+        return;
+    }
     
     // Parse request
     $requestUri = $_SERVER['REQUEST_URI'];

@@ -12,11 +12,53 @@ error_reporting(E_ALL);
 // Start session
 session_start();
 
-// Load configuration
-$config = json_decode(file_get_contents(__DIR__ . '/../config/config.json'), true);
+// Load configuration with error handling
+$config = [];
+$configFile = __DIR__ . '/../config/config.json';
+
+if (file_exists($configFile)) {
+    $configJson = file_get_contents($configFile);
+    $config = json_decode($configJson, true);
+    
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        error_log("Config JSON error: " . json_last_error_msg());
+        $config = [];
+    }
+}
+
+// Set default values if config is empty
+if (empty($config)) {
+    $config = [
+        'pool' => [
+            'name' => 'Isekai Yenten Pool',
+            'url' => 'https://mining.isekai-pool.com',
+            'fee_percent' => 1.0,
+            'minimum_payout' => 0.1,
+            'payout_threshold' => 0.5,
+            'block_reward' => 50.0,
+            'stratum_ports' => [3333, 4444, 5555]
+        ]
+    ];
+}
 
 // Set timezone
 date_default_timezone_set('UTC');
+
+// Helper function to safely get config values
+function getConfig($key, $default = '') {
+    global $config;
+    $keys = explode('.', $key);
+    $value = $config;
+    
+    foreach ($keys as $k) {
+        if (!isset($value[$k])) {
+            return $default;
+        }
+        $value = $value[$k];
+    }
+    
+    return $value;
+}
 
 ?>
 <!DOCTYPE html>
@@ -24,7 +66,7 @@ date_default_timezone_set('UTC');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($config['pool']['name']); ?> - Yenten Mining Pool</title>
+    <title><?php echo htmlspecialchars(getConfig('pool.name', 'Yenten Mining Pool')); ?> - Yenten Mining Pool</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -50,7 +92,7 @@ date_default_timezone_set('UTC');
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="/">
-                <i class="fas fa-coins"></i> <?php echo htmlspecialchars($config['pool']['name']); ?>
+                <i class="fas fa-coins"></i> <?php echo htmlspecialchars(getConfig('pool.name', 'Yenten Mining Pool')); ?>
             </a>
             <div class="navbar-nav ms-auto">
                 <a class="nav-link" href="#stats">Pool Stats</a>
@@ -99,7 +141,7 @@ date_default_timezone_set('UTC');
                 <div class="col-md-3 mb-4">
                     <div class="stat-card rounded p-4 text-center">
                         <i class="fas fa-percentage fa-2x mb-3"></i>
-                        <h3 id="pool-fee"><?php echo $config['pool']['fee_percent']; ?>%</h3>
+                        <h3 id="pool-fee"><?php echo getConfig('pool.fee_percent', 1.0); ?>%</h3>
                         <p class="mb-0">Pool Fee</p>
                     </div>
                 </div>
@@ -115,13 +157,13 @@ date_default_timezone_set('UTC');
                     <h3><i class="fas fa-info-circle"></i> Pool Information</h3>
                     <div class="row">
                         <div class="col-md-6">
-                            <p><strong>Pool URL:</strong> <?php echo htmlspecialchars($config['pool']['url']); ?></p>
-                            <p><strong>Minimum Payout:</strong> <?php echo $config['pool']['minimum_payout']; ?> YTN</p>
-                            <p><strong>Payout Threshold:</strong> <?php echo $config['pool']['payout_threshold']; ?> YTN</p>
+                            <p><strong>Pool URL:</strong> <?php echo htmlspecialchars(getConfig('pool.url', 'https://mining.isekai-pool.com')); ?></p>
+                            <p><strong>Minimum Payout:</strong> <?php echo getConfig('pool.minimum_payout', 0.1); ?> YTN</p>
+                            <p><strong>Payout Threshold:</strong> <?php echo getConfig('pool.payout_threshold', 0.5); ?> YTN</p>
                         </div>
                         <div class="col-md-6">
-                            <p><strong>Block Reward:</strong> <?php echo $config['pool']['block_reward']; ?> YTN</p>
-                            <p><strong>Pool Fee:</strong> <?php echo $config['pool']['fee_percent']; ?>%</p>
+                            <p><strong>Block Reward:</strong> <?php echo getConfig('pool.block_reward', 50.0); ?> YTN</p>
+                            <p><strong>Pool Fee:</strong> <?php echo getConfig('pool.fee_percent', 1.0); ?>%</p>
                             <p><strong>Payout Method:</strong> PPLNS</p>
                         </div>
                     </div>
@@ -130,12 +172,23 @@ date_default_timezone_set('UTC');
                 <!-- Mining Configuration -->
                 <div class="mining-ports rounded p-4 mb-4">
                     <h3><i class="fas fa-cogs"></i> Mining Configuration</h3>
-                    <p><strong>Stratum Server:</strong> <?php echo htmlspecialchars($config['pool']['url']); ?></p>
+                    <p><strong>Stratum Server:</strong> <?php echo htmlspecialchars(getConfig('pool.url', 'https://mining.isekai-pool.com')); ?></p>
                     <p><strong>Ports:</strong></p>
                     <ul>
-                        <?php foreach ($config['pool']['stratum_ports'] as $port): ?>
+                        <?php 
+                        $ports = getConfig('pool.stratum_ports', [3333, 4444, 5555]);
+                        if (is_array($ports)) {
+                            foreach ($ports as $port): 
+                        ?>
                         <li>Port <?php echo $port; ?> - Difficulty: <?php echo $port / 1000; ?></li>
-                        <?php endforeach; ?>
+                        <?php 
+                            endforeach;
+                        } else {
+                            echo "<li>Port 3333 - Difficulty: 3.333</li>";
+                            echo "<li>Port 4444 - Difficulty: 4.444</li>";
+                            echo "<li>Port 5555 - Difficulty: 5.555</li>";
+                        }
+                        ?>
                     </ul>
                     <p><strong>Username:</strong> Your Yenten wallet address</p>
                     <p><strong>Password:</strong> x (or any password)</p>
@@ -181,7 +234,7 @@ date_default_timezone_set('UTC');
     <!-- Footer -->
     <footer class="bg-dark text-light py-4 mt-5">
         <div class="container text-center">
-            <p>&copy; 2024 <?php echo htmlspecialchars($config['pool']['name']); ?>. All rights reserved.</p>
+            <p>&copy; 2024 <?php echo htmlspecialchars(getConfig('pool.name', 'Isekai Yenten Pool')); ?>. All rights reserved.</p>
             <p>Mining Yenten (YTN) - Secure, Reliable, Profitable</p>
         </div>
     </footer>
@@ -196,7 +249,7 @@ date_default_timezone_set('UTC');
                 return;
             }
             
-            const command = `ccminer -a yescryptr16 -o stratum+tcp://<?php echo parse_url($config['pool']['url'], PHP_URL_HOST); ?>:3333 -u ${walletAddress} -p x`;
+            const command = `ccminer -a yescryptr16 -o stratum+tcp://<?php echo parse_url(getConfig('pool.url', 'https://mining.isekai-pool.com'), PHP_URL_HOST); ?>:3333 -u ${walletAddress} -p x`;
             document.getElementById('mining-command').value = command;
         }
 
