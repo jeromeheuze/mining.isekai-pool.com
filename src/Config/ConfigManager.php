@@ -186,6 +186,20 @@ class ConfigManager
     }
 
     /**
+     * Get AdventureCoin daemon configuration
+     */
+    public function getAdventureCoinConfig()
+    {
+        return [
+            'daemon_host' => $this->get('adventurecoin.daemon_host'),
+            'daemon_port' => $this->get('adventurecoin.daemon_port'),
+            'daemon_user' => $this->get('adventurecoin.daemon_user'),
+            'daemon_password' => $this->get('adventurecoin.daemon_password'),
+            'wallet_address' => $this->get('adventurecoin.wallet_address')
+        ];
+    }
+
+    /**
      * Get security configuration
      */
     public function getSecurityConfig()

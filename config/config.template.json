@@ -14,7 +14,7 @@
         "minimum_payout": 0.1,
         "payout_threshold": 0.5,
         "block_reward": 50.0,
-        "stratum_ports": [3333, 4444, 5555],
+        "stratum_ports": [3333, 4444, 5555, 6666],
         "difficulty_multiplier": 1.0
     },
     "yenten": {
@@ -23,6 +23,20 @@
         "daemon_user": "rpcuser",
         "daemon_password": "CHANGE_THIS_PASSWORD",
         "wallet_address": "YOUR_POOL_WALLET_ADDRESS"
+    },
+    "koto": {
+        "daemon_host": "localhost",
+        "daemon_port": 9983,
+        "daemon_user": "koto_rpc_user",
+        "daemon_password": "CHANGE_THIS_PASSWORD",
+        "wallet_address": "YOUR_KOTO_WALLET_ADDRESS"
+    },
+    "adventurecoin": {
+        "daemon_host": "localhost",
+        "daemon_port": 9984,
+        "daemon_user": "advc_rpc_user",
+        "daemon_password": "CHANGE_THIS_PASSWORD",
+        "wallet_address": "YOUR_ADVC_WALLET_ADDRESS"
     },
     "security": {
         "session_timeout": 3600,

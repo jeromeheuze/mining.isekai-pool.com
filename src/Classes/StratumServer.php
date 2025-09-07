@@ -6,6 +6,7 @@ use YentenPool\Config\ConfigManager;
 use YentenPool\Database\Database;
 use YentenPool\Classes\YentenRPC;
 use YentenPool\Classes\KotoRPC;
+use YentenPool\Classes\AdventureCoinRPC;
 
 /**
  * Stratum Server for Yenten Mining Pool
@@ -17,6 +18,7 @@ class StratumServer
     private $db;
     private $yentenRPC;
     private $kotoRPC;
+    private $adventureCoinRPC;
     private $sockets = [];
     private $clients = [];
     private $running = false;
@@ -32,6 +34,7 @@ class StratumServer
         $this->db = Database::getInstance();
         $this->yentenRPC = new YentenRPC();
         $this->kotoRPC = new KotoRPC();
+        $this->adventureCoinRPC = new AdventureCoinRPC();
         $this->logFile = __DIR__ . '/../../logs/stratum.log';
         $this->setupLogging();
     }
@@ -74,6 +77,8 @@ class StratumServer
                 return 'koto';
             case 5555:
                 return 'yenten'; // Default to yenten for now
+            case 6666:
+                return 'adventurecoin';
             default:
                 return 'yenten';
         }
@@ -89,6 +94,8 @@ class StratumServer
                 return $this->yentenRPC;
             case 'koto':
                 return $this->kotoRPC;
+            case 'adventurecoin':
+                return $this->adventureCoinRPC;
             default:
                 return $this->yentenRPC;
         }
@@ -309,7 +316,8 @@ class StratumServer
                 break;
                 
             case 'mining.get_transactions':
-                $this->handleGetTransactions($clientId, $params, $id);
+                // Not implemented yet
+                $this->sendError($clientId, $id, -32601, 'Method not implemented');
                 break;
                 
             case 'mining.extranonce.subscribe':
@@ -637,7 +645,7 @@ class StratumServer
         ", [
             'user_id' => $user['user_id'],
             'worker_name' => $workerName,
-            'coin' => $client['coin']
+            'coin' => 'yenten' // Default coin for now
         ]);
         
         if (!$worker) {
@@ -648,7 +656,7 @@ class StratumServer
                 'password' => $password,
                 'difficulty' => 1.0,
                 'is_active' => 1,
-                'coin' => $client['coin'],
+                'coin' => 'yenten', // Default coin for now
                 'created_at' => date('Y-m-d H:i:s')
             ]);
             
@@ -739,7 +747,7 @@ class StratumServer
                 'share_id' => $shareId
             ];
             
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->log("Error validating share: " . $e->getMessage());
             return [
                 'valid' => false,
@@ -759,7 +767,7 @@ class StratumServer
             $currentHeight = $blockchainInfo['blocks'];
             $currentBlock = $rpc->getBlockByHeight($currentHeight);
             return $currentBlock['hash'];
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->log("Warning: Could not get real previous hash for $coin, using placeholder: " . $e->getMessage());
             return str_repeat('0', 64);
         }
@@ -771,7 +779,7 @@ class StratumServer
             $rpc = $this->getRPCForCoin($coin);
             $template = $rpc->getBlockTemplate();
             return $template['coinbasetxn']['data'] ?? bin2hex(random_bytes(32));
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->log("Warning: Could not get real coinbase1 for $coin, using placeholder: " . $e->getMessage());
             return bin2hex(random_bytes(32));
         }
@@ -782,7 +790,7 @@ class StratumServer
         try {
             // For now, use placeholder - this would be generated based on pool address
             return bin2hex(random_bytes(32));
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return bin2hex(random_bytes(32));
         }
     }
@@ -793,7 +801,7 @@ class StratumServer
             $rpc = $this->getRPCForCoin($coin);
             $template = $rpc->getBlockTemplate();
             return $template['merkle_branch'] ?? [];
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return [];
         }
     }
@@ -806,7 +814,7 @@ class StratumServer
             $currentHeight = $blockchainInfo['blocks'];
             $currentBlock = $rpc->getBlockByHeight($currentHeight);
             return dechex($currentBlock['version']);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return '20000000';
         }
     }
@@ -819,7 +827,7 @@ class StratumServer
             $currentHeight = $blockchainInfo['blocks'];
             $currentBlock = $rpc->getBlockByHeight($currentHeight);
             return $currentBlock['bits'];
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return '1d00ffff';
         }
     }
@@ -832,7 +840,7 @@ class StratumServer
             $currentHeight = $blockchainInfo['blocks'];
             $currentBlock = $rpc->getBlockByHeight($currentHeight);
             return dechex($currentBlock['time']);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return dechex(time());
         }
     }

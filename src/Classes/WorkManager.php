@@ -4,6 +4,7 @@ namespace YentenPool\Classes;
 
 use YentenPool\Config\ConfigManager;
 use YentenPool\Database\Database;
+use YentenPool\Classes\AdventureCoinRPC;
 
 /**
  * Work Manager for Yenten Mining Pool
@@ -14,6 +15,7 @@ class WorkManager
     private $config;
     private $db;
     private $yentenRPC;
+    private $adventureCoinRPC;
     private $currentWork;
     private $lastWorkUpdate;
     private $workUpdateInterval;
@@ -23,6 +25,7 @@ class WorkManager
         $this->config = ConfigManager::getInstance();
         $this->db = Database::getInstance();
         $this->yentenRPC = new YentenRPC();
+        $this->adventureCoinRPC = new AdventureCoinRPC();
         $this->workUpdateInterval = 30; // Update work every 30 seconds
         $this->lastWorkUpdate = 0;
     }
@@ -30,34 +33,36 @@ class WorkManager
     /**
      * Get current work for mining
      */
-    public function getCurrentWork()
+    public function getCurrentWork($coin = 'yenten')
     {
         $now = time();
         
         // Update work if needed
         if ($now - $this->lastWorkUpdate > $this->workUpdateInterval) {
-            $this->updateWork();
+            $this->updateWork($coin);
         }
         
         return $this->currentWork;
     }
     
     /**
-     * Update work from Yenten daemon
+     * Update work from daemon
      */
-    public function updateWork()
+    public function updateWork($coin = 'yenten')
     {
         try {
+            $rpc = $this->getRPCForCoin($coin);
+            
             // Check if daemon is synced
-            if (!$this->yentenRPC->isSynced()) {
-                $this->log("Yenten daemon is not synced, using fallback work");
-                $this->currentWork = $this->getFallbackWork();
+            if (!$rpc->isSynced()) {
+                $this->log("$coin daemon is not synced, using fallback work");
+                $this->currentWork = $this->getFallbackWork($coin);
                 $this->lastWorkUpdate = time();
                 return;
             }
             
             // Get block template
-            $template = $this->yentenRPC->getBlockTemplate([
+            $template = $rpc->getBlockTemplate([
                 'rules' => ['segwit'],
                 'capabilities' => ['proposal']
             ]);
@@ -67,7 +72,7 @@ class WorkManager
             }
             
             // Process block template
-            $work = $this->processBlockTemplate($template);
+            $work = $this->processBlockTemplate($template, $coin);
             
             // Store work in database
             $this->storeWork($work);
@@ -75,22 +80,37 @@ class WorkManager
             $this->currentWork = $work;
             $this->lastWorkUpdate = time();
             
-            $this->log("Work updated successfully - Height: {$work['height']}, Hash: {$work['previous_hash']}");
+            $this->log("$coin work updated successfully - Height: {$work['height']}, Hash: {$work['previous_hash']}");
             
-        } catch (Exception $e) {
-            $this->log("Failed to update work: " . $e->getMessage());
+        } catch (\Exception $e) {
+            $this->log("Failed to update $coin work: " . $e->getMessage());
             
             // Use fallback work if available
             if (!$this->currentWork) {
-                $this->currentWork = $this->getFallbackWork();
+                $this->currentWork = $this->getFallbackWork($coin);
             }
+        }
+    }
+    
+    /**
+     * Get RPC client for coin
+     */
+    private function getRPCForCoin($coin)
+    {
+        switch ($coin) {
+            case 'yenten':
+                return $this->yentenRPC;
+            case 'adventurecoin':
+                return $this->adventureCoinRPC;
+            default:
+                return $this->yentenRPC;
         }
     }
     
     /**
      * Process block template from daemon
      */
-    private function processBlockTemplate($template)
+    private function processBlockTemplate($template, $coin = 'yenten')
     {
         $work = [
             'job_id' => $this->generateJobId(),
@@ -105,7 +125,8 @@ class WorkManager
             'target' => $this->calculateTarget($template['bits']),
             'difficulty' => $this->calculateDifficulty($template['bits']),
             'created_at' => time(),
-            'template' => $template
+            'template' => $template,
+            'coin' => $coin
         ];
         
         return $work;
@@ -227,7 +248,7 @@ class WorkManager
                 'created_at' => date('Y-m-d H:i:s', $work['created_at'])
             ]);
             
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->log("Failed to store work: " . $e->getMessage());
         }
     }
@@ -235,14 +256,15 @@ class WorkManager
     /**
      * Get fallback work when daemon is unavailable
      */
-    private function getFallbackWork()
+    private function getFallbackWork($coin = 'yenten')
     {
-        // Get the last known work from database
+        // Get the last known work from database for this coin
         $lastWork = $this->db->fetch("
             SELECT * FROM pool_work 
+            WHERE coin = :coin
             ORDER BY created_at DESC 
             LIMIT 1
-        ");
+        ", ['coin' => $coin]);
         
         if ($lastWork) {
             return [
@@ -257,7 +279,8 @@ class WorkManager
                 'ntime' => dechex(time()),
                 'target' => $lastWork['target'],
                 'difficulty' => $lastWork['difficulty'],
-                'created_at' => time()
+                'created_at' => time(),
+                'coin' => $coin
             ];
         }
         
@@ -274,16 +297,17 @@ class WorkManager
             'ntime' => dechex(time()),
             'target' => '00000000ffff0000000000000000000000000000000000000000000000000000',
             'difficulty' => 1.0,
-            'created_at' => time()
+            'created_at' => time(),
+            'coin' => $coin
         ];
     }
     
     /**
      * Validate submitted share
      */
-    public function validateShare($shareData)
+    public function validateShare($shareData, $coin = 'yenten')
     {
-        $work = $this->getCurrentWork();
+        $work = $this->getCurrentWork($coin);
         
         // Basic validation
         if (!$work) {
@@ -343,10 +367,11 @@ class WorkManager
     /**
      * Submit block to network
      */
-    public function submitBlock($blockData)
+    public function submitBlock($blockData, $coin = 'yenten')
     {
         try {
-            $result = $this->yentenRPC->submitBlock($blockData);
+            $rpc = $this->getRPCForCoin($coin);
+            $result = $rpc->submitBlock($blockData);
             
             if ($result === null) {
                 // Block was accepted
@@ -358,7 +383,7 @@ class WorkManager
                 return ['success' => false, 'message' => $result];
             }
             
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->log("Failed to submit block: " . $e->getMessage());
             return ['success' => false, 'message' => $e->getMessage()];
         }
@@ -367,11 +392,12 @@ class WorkManager
     /**
      * Get network statistics
      */
-    public function getNetworkStats()
+    public function getNetworkStats($coin = 'yenten')
     {
         try {
-            $blockchainInfo = $this->yentenRPC->getBlockchainInfo();
-            $miningInfo = $this->yentenRPC->getMiningInfo();
+            $rpc = $this->getRPCForCoin($coin);
+            $blockchainInfo = $rpc->getBlockchainInfo();
+            $miningInfo = $rpc->getMiningInfo();
             
             return [
                 'height' => $blockchainInfo['blocks'] ?? 0,
@@ -380,7 +406,7 @@ class WorkManager
                 'synced' => !($blockchainInfo['initialblockdownload'] ?? true)
             ];
             
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->log("Failed to get network stats: " . $e->getMessage());
             return [
                 'height' => 0,
