@@ -95,10 +95,10 @@ function getConfig($key, $default = '') {
                 <i class="fas fa-coins"></i> <?php echo htmlspecialchars(getConfig('pool.name', 'Isekai Multi-Coin Pool')); ?>
             </a>
             <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="#stats">Pool Stats</a>
-                <a class="nav-link" href="#miners">Top Miners</a>
-                <a class="nav-link" href="#blocks">Recent Blocks</a>
-                <a class="nav-link" href="#help">Help</a>
+                <a class="nav-link" href="/stats.php">Pool Stats</a>
+                <a class="nav-link" href="/miners.php">Top Miners</a>
+                <a class="nav-link" href="/blocks.php">Recent Blocks</a>
+                <a class="nav-link" href="/help.php">Help</a>
             </div>
         </div>
     </nav>
