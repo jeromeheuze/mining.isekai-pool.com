@@ -99,7 +99,7 @@ class StratumServer
     private function serverLoop()
     {
         while ($this->running) {
-            $read = array_merge($this->sockets, $this->clients);
+            $read = array_merge($this->sockets, array_column($this->clients, 'socket'));
             $write = [];
             $except = [];
             
@@ -107,7 +107,12 @@ class StratumServer
             $ready = socket_select($read, $write, $except, 1);
             
             if ($ready === false) {
-                $this->log("Socket select error: " . socket_strerror(socket_last_error()));
+                $error = socket_last_error();
+                if ($error === SOCKET_EINTR) {
+                    // Interrupted system call - this is normal, continue
+                    continue;
+                }
+                $this->log("Socket select error: " . socket_strerror($error));
                 continue;
             }
             
