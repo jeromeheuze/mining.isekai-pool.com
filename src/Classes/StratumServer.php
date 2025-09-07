@@ -270,6 +270,10 @@ class StratumServer
                 $this->handleGetTransactions($clientId, $params, $id);
                 break;
                 
+            case 'mining.extranonce.subscribe':
+                $this->handleExtranonceSubscribe($clientId, $params, $id);
+                break;
+                
             default:
                 $this->sendError($clientId, $id, -32601, 'Method not found');
                 break;
@@ -335,6 +339,17 @@ class StratumServer
         
         // Send initial work
         $this->sendWork($clientId);
+    }
+    
+    /**
+     * Handle mining.extranonce.subscribe
+     */
+    private function handleExtranonceSubscribe($clientId, $params, $id)
+    {
+        // This method is used by some miners to subscribe to extranonce changes
+        // We'll respond with null to indicate we don't support dynamic extranonce changes
+        $this->sendResponse($clientId, $id, null);
+        $this->log("Client $clientId subscribed to extranonce changes");
     }
     
     /**
