@@ -626,18 +626,78 @@ class StratumServer
      */
     private function validateShare($client, $jobId, $extranonce2, $ntime, $nonce)
     {
-        // This is a simplified validation
-        // In a real implementation, you would:
-        // 1. Verify the job exists and is current
-        // 2. Check the share difficulty meets requirements
-        // 3. Validate the proof-of-work using YescryptR16
-        // 4. Check for duplicate shares
-        // 5. Update database with share information
-        
-        return [
-            'valid' => true,
-            'reason' => 'Share accepted'
-        ];
+        $this->log("DEBUG: validateShare called for client " . $client['id']);
+        try {
+            // Generate a hash for this share (simplified)
+            $shareHash = hash('sha256', $jobId . $extranonce2 . $ntime . $nonce);
+            $this->log("DEBUG: Generated share hash: " . $shareHash);
+            
+            // Check for duplicate shares
+            $existingShare = $this->db->fetch("
+                SELECT id FROM shares 
+                WHERE hash = :hash AND nonce = :nonce
+            ", [
+                'hash' => $shareHash,
+                'nonce' => $nonce
+            ]);
+            
+            if ($existingShare) {
+                return [
+                    'valid' => false,
+                    'reason' => 'Duplicate share'
+                ];
+            }
+            
+            // Calculate share difficulty (simplified)
+            $shareDifficulty = $client['difficulty'];
+            
+            // Insert share into database
+            $shareId = $this->db->insert('shares', [
+                'user_id' => $client['user_id'],
+                'worker_id' => $client['worker_id'],
+                'block_height' => 1, // Placeholder - would get from actual block
+                'difficulty' => $client['difficulty'],
+                'share_difficulty' => $shareDifficulty,
+                'nonce' => $nonce,
+                'hash' => $shareHash,
+                'is_valid' => 1,
+                'is_stale' => 0,
+                'is_duplicate' => 0,
+                'submitted_at' => date('Y-m-d H:i:s'),
+                'processed_at' => date('Y-m-d H:i:s'),
+                'reward' => 0.00000000
+            ]);
+            
+            // Update worker statistics
+            $this->db->execute("
+                UPDATE workers 
+                SET shares_submitted = shares_submitted + 1,
+                    shares_accepted = shares_accepted + 1,
+                    last_seen = NOW()
+                WHERE id = :worker_id
+            ", ['worker_id' => $client['worker_id']]);
+            
+            // Update user statistics
+            $this->db->execute("
+                UPDATE users 
+                SET total_shares = total_shares + 1,
+                    last_seen = NOW()
+                WHERE id = :user_id
+            ", ['user_id' => $client['user_id']]);
+            
+            return [
+                'valid' => true,
+                'reason' => 'Share accepted',
+                'share_id' => $shareId
+            ];
+            
+        } catch (Exception $e) {
+            $this->log("Error validating share: " . $e->getMessage());
+            return [
+                'valid' => false,
+                'reason' => 'Database error'
+            ];
+        }
     }
     
     /**
