@@ -1,0 +1,56 @@
+# Configuration files with sensitive data
+config/config.json
+
+# Log files
+logs/*.log
+logs/*.pid
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Composer
+vendor/
+composer.lock
+
+# Node modules (if using any JS tools)
+node_modules/
+
+# Backup files
+*.bak
+*.backup
+
+# Cache files
+cache/
+tmp/
+
+# Database dumps
+*.sql
+*.dump
+
+# SSL certificates
+*.pem
+*.key
+*.crt
+*.csr
+
+# Mining pool specific
+mining_data/
+blocks/
+shares/

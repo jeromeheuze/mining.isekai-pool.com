@@ -38,7 +38,15 @@ class ConfigManager
     private function loadConfig()
     {
         if (!file_exists($this->configFile)) {
-            throw new \Exception("Configuration file not found: {$this->configFile}");
+            $templateFile = str_replace('config.json', 'config.template.json', $this->configFile);
+            
+            if (file_exists($templateFile)) {
+                throw new \Exception("Configuration file not found: {$this->configFile}\n" .
+                    "Please copy config/config.template.json to config/config.json and update the settings.\n" .
+                    "cp config/config.template.json config/config.json");
+            } else {
+                throw new \Exception("Configuration file not found: {$this->configFile}");
+            }
         }
 
         $json = file_get_contents($this->configFile);

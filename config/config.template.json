@@ -5,7 +5,7 @@
         "port": 3306,
         "name": "yenten_pool",
         "username": "pool_user",
-        "password": "secure_password_123"
+        "password": "CHANGE_THIS_PASSWORD"
     },
     "pool": {
         "name": "Isekai Yenten Pool",
@@ -21,8 +21,8 @@
         "daemon_host": "localhost",
         "daemon_port": 9981,
         "daemon_user": "rpcuser",
-        "daemon_password": "rpcpassword",
-        "wallet_address": "your_pool_wallet_address"
+        "daemon_password": "CHANGE_THIS_PASSWORD",
+        "wallet_address": "YOUR_POOL_WALLET_ADDRESS"
     },
     "security": {
         "session_timeout": 3600,
