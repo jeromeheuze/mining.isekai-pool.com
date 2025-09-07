@@ -14,6 +14,8 @@ date_default_timezone_set('UTC');
 // Include autoloader and dependencies
 require_once __DIR__ . '/../src/Config/ConfigManager.php';
 require_once __DIR__ . '/../src/Database/Database.php';
+require_once __DIR__ . '/../src/Classes/YentenRPC.php';
+require_once __DIR__ . '/../src/Classes/KotoRPC.php';
 require_once __DIR__ . '/../src/Classes/StratumServer.php';
 
 use YentenPool\Config\ConfigManager;
