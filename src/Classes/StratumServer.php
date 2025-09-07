@@ -5,6 +5,7 @@ namespace YentenPool\Classes;
 use YentenPool\Config\ConfigManager;
 use YentenPool\Database\Database;
 use YentenPool\Classes\YentenRPC;
+use YentenPool\Classes\KotoRPC;
 
 /**
  * Stratum Server for Yenten Mining Pool
@@ -15,6 +16,7 @@ class StratumServer
     private $config;
     private $db;
     private $yentenRPC;
+    private $kotoRPC;
     private $sockets = [];
     private $clients = [];
     private $running = false;
@@ -29,6 +31,7 @@ class StratumServer
         $this->config = ConfigManager::getInstance();
         $this->db = Database::getInstance();
         $this->yentenRPC = new YentenRPC();
+        $this->kotoRPC = new KotoRPC();
         $this->logFile = __DIR__ . '/../../logs/stratum.log';
         $this->setupLogging();
     }
@@ -44,7 +47,7 @@ class StratumServer
         // Get ports from configuration
         $ports = $this->config->get('pool.stratum_ports', [3333, 4444, 5555]);
         
-        // Create sockets for each port
+        // Create sockets for each port with coin mapping
         foreach ($ports as $port) {
             $this->createSocket($port);
         }
@@ -57,6 +60,38 @@ class StratumServer
         
         // Main server loop
         $this->serverLoop();
+    }
+    
+    /**
+     * Get coin type based on port
+     */
+    private function getCoinByPort($port)
+    {
+        switch ($port) {
+            case 3333:
+                return 'yenten';
+            case 4444:
+                return 'koto';
+            case 5555:
+                return 'yenten'; // Default to yenten for now
+            default:
+                return 'yenten';
+        }
+    }
+    
+    /**
+     * Get RPC client for coin
+     */
+    private function getRPCForCoin($coin)
+    {
+        switch ($coin) {
+            case 'yenten':
+                return $this->yentenRPC;
+            case 'koto':
+                return $this->kotoRPC;
+            default:
+                return $this->yentenRPC;
+        }
     }
     
     /**
@@ -153,6 +188,9 @@ class StratumServer
         socket_getpeername($clientSocket, $ip, $port);
         $clientId = $this->generateClientId();
         
+        // Determine coin based on port
+        $coin = $this->getCoinByPort($port);
+        
         // Set non-blocking mode
         socket_set_nonblock($clientSocket);
         
@@ -162,6 +200,7 @@ class StratumServer
             'socket' => $clientSocket,
             'ip' => $ip,
             'port' => $port,
+            'coin' => $coin,
             'connected_at' => time(),
             'last_activity' => time(),
             'authenticated' => false,
@@ -396,16 +435,17 @@ class StratumServer
     private function sendWork($clientId)
     {
         $client = &$this->clients[$clientId];
+        $coin = $client['coin'];
         
-        // Generate work (this would normally come from Yenten daemon)
+        // Generate work using the appropriate daemon
         $jobId = $this->generateJobId();
-        $previousHash = $this->getPreviousHash();
-        $coinb1 = $this->generateCoinbase1();
-        $coinb2 = $this->generateCoinbase2();
-        $merkleBranches = $this->getMerkleBranches();
-        $version = $this->getVersion();
-        $nbits = $this->getNbits();
-        $ntime = $this->getNtime();
+        $previousHash = $this->getPreviousHash($coin);
+        $coinb1 = $this->generateCoinbase1($coin);
+        $coinb2 = $this->generateCoinbase2($coin);
+        $merkleBranches = $this->getMerkleBranches($coin);
+        $version = $this->getVersion($coin);
+        $nbits = $this->getNbits($coin);
+        $ntime = $this->getNtime($coin);
         $cleanJobs = true;
         
         $params = [
@@ -593,10 +633,11 @@ class StratumServer
         $worker = $this->db->fetch("
             SELECT id as worker_id, difficulty, is_active
             FROM workers
-            WHERE user_id = :user_id AND worker_name = :worker_name
+            WHERE user_id = :user_id AND worker_name = :worker_name AND coin = :coin
         ", [
             'user_id' => $user['user_id'],
-            'worker_name' => $workerName
+            'worker_name' => $workerName,
+            'coin' => $client['coin']
         ]);
         
         if (!$worker) {
@@ -607,6 +648,7 @@ class StratumServer
                 'password' => $password,
                 'difficulty' => 1.0,
                 'is_active' => 1,
+                'coin' => $client['coin'],
                 'created_at' => date('Y-m-d H:i:s')
             ]);
             
@@ -655,7 +697,7 @@ class StratumServer
             $shareDifficulty = $client['difficulty'];
             
             // Insert share into database
-            $this->log("DEBUG: Inserting share into database for user_id: " . $client['user_id'] . ", worker_id: " . $client['worker_id']);
+            $this->log("DEBUG: Inserting share into database for user_id: " . $client['user_id'] . ", worker_id: " . $client['worker_id'] . ", coin: " . $client['coin']);
             $shareId = $this->db->insert('shares', [
                 'user_id' => $client['user_id'],
                 'worker_id' => $client['worker_id'],
@@ -669,7 +711,8 @@ class StratumServer
                 'is_duplicate' => 0,
                 'submitted_at' => date('Y-m-d H:i:s'),
                 'processed_at' => date('Y-m-d H:i:s'),
-                'reward' => 0.00000000
+                'reward' => 0.00000000,
+                'coin' => $client['coin']
             ]);
             $this->log("DEBUG: Share inserted with ID: " . $shareId);
             
@@ -706,34 +749,35 @@ class StratumServer
     }
     
     /**
-     * Get real work data from Yenten daemon
+     * Get real work data from daemon
      */
-    private function getPreviousHash() 
+    private function getPreviousHash($coin = 'yenten') 
     { 
         try {
-            $blockchainInfo = $this->yentenRPC->getBlockchainInfo();
+            $rpc = $this->getRPCForCoin($coin);
+            $blockchainInfo = $rpc->getBlockchainInfo();
             $currentHeight = $blockchainInfo['blocks'];
-            $currentBlock = $this->yentenRPC->getBlockByHeight($currentHeight);
+            $currentBlock = $rpc->getBlockByHeight($currentHeight);
             return $currentBlock['hash'];
         } catch (Exception $e) {
-            $this->log("Warning: Could not get real previous hash, using placeholder: " . $e->getMessage());
+            $this->log("Warning: Could not get real previous hash for $coin, using placeholder: " . $e->getMessage());
             return str_repeat('0', 64);
         }
     }
     
-    private function generateCoinbase1() 
+    private function generateCoinbase1($coin = 'yenten') 
     { 
         try {
-            // Get block template from daemon
-            $template = $this->yentenRPC->getBlockTemplate();
+            $rpc = $this->getRPCForCoin($coin);
+            $template = $rpc->getBlockTemplate();
             return $template['coinbasetxn']['data'] ?? bin2hex(random_bytes(32));
         } catch (Exception $e) {
-            $this->log("Warning: Could not get real coinbase1, using placeholder: " . $e->getMessage());
+            $this->log("Warning: Could not get real coinbase1 for $coin, using placeholder: " . $e->getMessage());
             return bin2hex(random_bytes(32));
         }
     }
     
-    private function generateCoinbase2() 
+    private function generateCoinbase2($coin = 'yenten') 
     { 
         try {
             // For now, use placeholder - this would be generated based on pool address
@@ -743,46 +787,50 @@ class StratumServer
         }
     }
     
-    private function getMerkleBranches() 
+    private function getMerkleBranches($coin = 'yenten') 
     { 
         try {
-            $template = $this->yentenRPC->getBlockTemplate();
+            $rpc = $this->getRPCForCoin($coin);
+            $template = $rpc->getBlockTemplate();
             return $template['merkle_branch'] ?? [];
         } catch (Exception $e) {
             return [];
         }
     }
     
-    private function getVersion() 
+    private function getVersion($coin = 'yenten') 
     { 
         try {
-            $blockchainInfo = $this->yentenRPC->getBlockchainInfo();
+            $rpc = $this->getRPCForCoin($coin);
+            $blockchainInfo = $rpc->getBlockchainInfo();
             $currentHeight = $blockchainInfo['blocks'];
-            $currentBlock = $this->yentenRPC->getBlockByHeight($currentHeight);
+            $currentBlock = $rpc->getBlockByHeight($currentHeight);
             return dechex($currentBlock['version']);
         } catch (Exception $e) {
             return '20000000';
         }
     }
     
-    private function getNbits() 
+    private function getNbits($coin = 'yenten') 
     { 
         try {
-            $blockchainInfo = $this->yentenRPC->getBlockchainInfo();
+            $rpc = $this->getRPCForCoin($coin);
+            $blockchainInfo = $rpc->getBlockchainInfo();
             $currentHeight = $blockchainInfo['blocks'];
-            $currentBlock = $this->yentenRPC->getBlockByHeight($currentHeight);
+            $currentBlock = $rpc->getBlockByHeight($currentHeight);
             return $currentBlock['bits'];
         } catch (Exception $e) {
             return '1d00ffff';
         }
     }
     
-    private function getNtime() 
+    private function getNtime($coin = 'yenten') 
     { 
         try {
-            $blockchainInfo = $this->yentenRPC->getBlockchainInfo();
+            $rpc = $this->getRPCForCoin($coin);
+            $blockchainInfo = $rpc->getBlockchainInfo();
             $currentHeight = $blockchainInfo['blocks'];
-            $currentBlock = $this->yentenRPC->getBlockByHeight($currentHeight);
+            $currentBlock = $rpc->getBlockByHeight($currentHeight);
             return dechex($currentBlock['time']);
         } catch (Exception $e) {
             return dechex(time());
