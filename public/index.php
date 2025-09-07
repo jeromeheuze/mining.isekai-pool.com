@@ -36,7 +36,7 @@ if (empty($config)) {
             'minimum_payout' => 0.1,
             'payout_threshold' => 0.5,
             'block_reward' => 50.0,
-            'stratum_ports' => [3333, 4444, 5555]
+            'stratum_ports' => [3333, 4444, 5555, 6666]
         ]
     ];
 }
@@ -66,7 +66,7 @@ function getConfig($key, $default = '') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars(getConfig('pool.name', 'Isekai Multi-Coin Pool')); ?> - Yenten & KOTO Mining Pool</title>
+    <title><?php echo htmlspecialchars(getConfig('pool.name', 'Isekai Multi-Coin Pool')); ?> - Yenten, KOTO & UkkeyCoin Mining Pool</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -111,7 +111,7 @@ function getConfig($key, $default = '') {
                     <h1 class="display-4 mb-4">
                         <i class="fas fa-server"></i> Multi-Coin Mining Pool
                     </h1>
-                    <p class="lead">Mine Yenten (YTN) and KOTO (KOTO) with our reliable and efficient mining pool</p>
+                    <p class="lead">Mine Yenten (YTN), KOTO (KOTO), and UkkeyCoin (UKY) with our reliable and efficient mining pool</p>
                 </div>
             </div>
             
@@ -149,7 +149,7 @@ function getConfig($key, $default = '') {
 
             <!-- Blockchain Sync Status -->
             <div class="row mt-4">
-                <div class="col-md-6 mb-4">
+                <div class="col-md-4 mb-4">
                     <div class="stat-card rounded p-4">
                         <h5><i class="fas fa-coins text-warning"></i> Yenten (YTN) Sync Status</h5>
                         <div class="progress mb-2" style="height: 25px;">
@@ -168,7 +168,7 @@ function getConfig($key, $default = '') {
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6 mb-4">
+                <div class="col-md-4 mb-4">
                     <div class="stat-card rounded p-4">
                         <h5><i class="fas fa-coins text-success"></i> KOTO (KOTO) Sync Status</h5>
                         <div class="progress mb-2" style="height: 25px;">
@@ -187,6 +187,25 @@ function getConfig($key, $default = '') {
                         </div>
                     </div>
                 </div>
+                <div class="col-md-4 mb-4">
+                    <div class="stat-card rounded p-4">
+                        <h5><i class="fas fa-coins text-info"></i> UkkeyCoin (UKY) Sync Status</h5>
+                        <div class="progress mb-2" style="height: 25px;">
+                            <div class="progress-bar bg-info progress-bar-striped progress-bar-animated" 
+                                 role="progressbar" id="ukkeycoin-progress" style="width: 0%">
+                                <span id="ukkeycoin-progress-text">Loading...</span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <small><strong>Block Height:</strong> <span id="ukkeycoin-height">0</span></small>
+                            </div>
+                            <div class="col-6">
+                                <small><strong>Status:</strong> <span id="ukkeycoin-status">Connecting...</span></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -200,13 +219,13 @@ function getConfig($key, $default = '') {
                     <div class="row">
                         <div class="col-md-6">
                             <p><strong>Pool URL:</strong> <?php echo htmlspecialchars(getConfig('pool.url', 'https://mining.isekai-pool.com')); ?></p>
-                            <p><strong>Supported Coins:</strong> Yenten (YTN) & KOTO (KOTO)</p>
+                            <p><strong>Supported Coins:</strong> Yenten (YTN), KOTO (KOTO) & UkkeyCoin (UKY)</p>
                             <p><strong>Pool Fee:</strong> <?php echo getConfig('pool.fee_percent', 1.0); ?>%</p>
                         </div>
                         <div class="col-md-6">
                             <p><strong>Payout Method:</strong> PPLNS</p>
-                            <p><strong>Minimum Payout:</strong> 0.1 YTN / 0.1 KOTO</p>
-                            <p><strong>Payout Threshold:</strong> 0.5 YTN / 0.5 KOTO</p>
+                            <p><strong>Minimum Payout:</strong> 0.1 YTN / 0.1 KOTO / 0.1 UKY</p>
+                            <p><strong>Payout Threshold:</strong> 0.5 YTN / 0.5 KOTO / 0.5 UKY</p>
                         </div>
                     </div>
                 </div>
@@ -240,6 +259,18 @@ function getConfig($key, $default = '') {
                         </div>
                     </div>
 
+                    <!-- UkkeyCoin Mining -->
+                    <div class="mb-4">
+                        <h5><i class="fas fa-coins text-info"></i> UkkeyCoin (UKY) Mining</h5>
+                        <p><strong>Algorithm:</strong> YesPoWer</p>
+                        <p><strong>Port:</strong> 6666</p>
+                        <p><strong>Username:</strong> Your UkkeyCoin wallet address</p>
+                        <p><strong>Password:</strong> x (or any password)</p>
+                        <div class="alert alert-info">
+                            <strong>Example:</strong> ccminer -a YesPoWer -o stratum+tcp://mining.isekai-pool.com:6666 -u YOUR_UKY_ADDRESS -p x
+                        </div>
+                    </div>
+
                     <!-- Additional Ports -->
                     <div class="mb-4">
                         <h5><i class="fas fa-server text-primary"></i> Additional Ports</h5>
@@ -263,6 +294,7 @@ function getConfig($key, $default = '') {
                             <select class="form-select" id="coin-select" onchange="updateMiningForm()">
                                 <option value="yenten">Yenten (YTN) - YespowerR16</option>
                                 <option value="koto">KOTO (KOTO) - Yescrypt</option>
+                                <option value="ukkeycoin">UkkeyCoin (UKY) - YesPoWer</option>
                             </select>
                         </div>
 
@@ -301,7 +333,7 @@ function getConfig($key, $default = '') {
     <footer class="bg-dark text-light py-4 mt-5">
         <div class="container text-center">
             <p>&copy; <?=date('Y');?> <?php echo htmlspecialchars(getConfig('pool.name', 'Isekai Multi-Coin Pool')); ?>. All rights reserved. Maintained by <a href="https://isekai-pool.com">Isekai Poll</a></a></p>
-            <p>Mining Yenten (YTN) & KOTO (KOTO) - Secure, Reliable, Profitable</p>
+            <p>Mining Yenten (YTN), KOTO (KOTO) & UkkeyCoin (UKY) - Secure, Reliable, Profitable</p>
         </div>
     </footer>
 
@@ -319,6 +351,9 @@ function getConfig($key, $default = '') {
             } else if (coinSelect.value === 'koto') {
                 walletLabel.textContent = 'Your KOTO Address:';
                 walletInput.placeholder = 'Enter your KOTO address';
+            } else if (coinSelect.value === 'ukkeycoin') {
+                walletLabel.textContent = 'Your UkkeyCoin Address:';
+                walletInput.placeholder = 'Enter your UKY address';
             }
         }
 
@@ -339,6 +374,8 @@ function getConfig($key, $default = '') {
                 command = `ccminer -a YespowerR16 -o stratum+tcp://${poolHost}:3333 -u ${walletAddress} -p x`;
             } else if (coinSelect.value === 'koto') {
                 command = `ccminer -a yescrypt -o stratum+tcp://${poolHost}:4444 -u ${walletAddress} -p x`;
+            } else if (coinSelect.value === 'ukkeycoin') {
+                command = `ccminer -a YesPoWer -o stratum+tcp://${poolHost}:6666 -u ${walletAddress} -p x`;
             }
             
             document.getElementById('mining-command').value = command;
@@ -396,6 +433,32 @@ function getConfig($key, $default = '') {
                     console.error('KOTO status error:', error);
                     document.getElementById('koto-status').textContent = 'Connection Error';
                     document.getElementById('koto-progress').classList.add('bg-danger');
+                });
+
+            // Update UkkeyCoin status
+            fetch('/api/blockchain-status.php?coin=ukkeycoin')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const progress = Math.min(data.progress * 100, 100);
+                        document.getElementById('ukkeycoin-progress').style.width = progress + '%';
+                        document.getElementById('ukkeycoin-progress-text').textContent = progress.toFixed(2) + '%';
+                        document.getElementById('ukkeycoin-height').textContent = data.height.toLocaleString();
+                        document.getElementById('ukkeycoin-status').textContent = data.synced ? 'Synced' : 'Syncing...';
+                        
+                        if (data.synced) {
+                            document.getElementById('ukkeycoin-progress').classList.remove('progress-bar-animated');
+                            document.getElementById('ukkeycoin-progress').classList.add('bg-success');
+                        }
+                    } else {
+                        document.getElementById('ukkeycoin-status').textContent = 'Error: ' + data.error;
+                        document.getElementById('ukkeycoin-progress').classList.add('bg-danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('UkkeyCoin status error:', error);
+                    document.getElementById('ukkeycoin-status').textContent = 'Connection Error';
+                    document.getElementById('ukkeycoin-progress').classList.add('bg-danger');
                 });
         }
 

@@ -1,7 +1,7 @@
 <?php
 /**
  * Blockchain Status API
- * Returns sync status for Yenten and KOTO daemons
+ * Returns sync status for Yenten, KOTO and UkkeyCoin daemons
  */
 
 header('Content-Type: application/json');
@@ -21,10 +21,10 @@ if (file_exists($configFile)) {
 // Get coin parameter
 $coin = $_GET['coin'] ?? '';
 
-if (!in_array($coin, ['yenten', 'koto'])) {
+if (!in_array($coin, ['yenten', 'koto', 'ukkeycoin'])) {
     echo json_encode([
         'success' => false,
-        'error' => 'Invalid coin parameter. Use "yenten" or "koto".'
+        'error' => 'Invalid coin parameter. Use "yenten", "koto", or "ukkeycoin".'
     ]);
     exit;
 }
@@ -45,6 +45,13 @@ try {
             'port' => $config['koto']['daemon_port'] ?? 9983,
             'user' => $config['koto']['daemon_user'] ?? 'koto_rpc_user',
             'password' => $config['koto']['daemon_password'] ?? 'koto_rpc_password'
+        ];
+    } else if ($coin === 'ukkeycoin') {
+        $coinConfig = [
+            'host' => $config['ukkeycoin']['daemon_host'] ?? 'localhost',
+            'port' => $config['ukkeycoin']['daemon_port'] ?? 9985,
+            'user' => $config['ukkeycoin']['daemon_user'] ?? 'uky_rpc_user',
+            'password' => $config['ukkeycoin']['daemon_password'] ?? 'uky_rpc_password'
         ];
     }
 
