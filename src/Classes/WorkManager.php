@@ -4,7 +4,7 @@ namespace YentenPool\Classes;
 
 use YentenPool\Config\ConfigManager;
 use YentenPool\Database\Database;
-use YentenPool\Classes\AdventureCoinRPC;
+use YentenPool\Classes\UkkeyCoinRPC;
 
 /**
  * Work Manager for Yenten Mining Pool
@@ -15,7 +15,7 @@ class WorkManager
     private $config;
     private $db;
     private $yentenRPC;
-    private $adventureCoinRPC;
+    private $ukkeyCoinRPC;
     private $currentWork;
     private $lastWorkUpdate;
     private $workUpdateInterval;
@@ -25,7 +25,7 @@ class WorkManager
         $this->config = ConfigManager::getInstance();
         $this->db = Database::getInstance();
         $this->yentenRPC = new YentenRPC();
-        $this->adventureCoinRPC = new AdventureCoinRPC();
+        $this->ukkeyCoinRPC = new UkkeyCoinRPC();
         $this->workUpdateInterval = 30; // Update work every 30 seconds
         $this->lastWorkUpdate = 0;
     }
@@ -100,8 +100,8 @@ class WorkManager
         switch ($coin) {
             case 'yenten':
                 return $this->yentenRPC;
-            case 'adventurecoin':
-                return $this->adventureCoinRPC;
+            case 'ukkeycoin':
+                return $this->ukkeyCoinRPC;
             default:
                 return $this->yentenRPC;
         }

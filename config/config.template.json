@@ -31,12 +31,12 @@
         "daemon_password": "CHANGE_THIS_PASSWORD",
         "wallet_address": "YOUR_KOTO_WALLET_ADDRESS"
     },
-    "adventurecoin": {
+    "ukkeycoin": {
         "daemon_host": "localhost",
         "daemon_port": 9984,
-        "daemon_user": "advc_rpc_user",
+        "daemon_user": "uky_rpc_user",
         "daemon_password": "CHANGE_THIS_PASSWORD",
-        "wallet_address": "YOUR_ADVC_WALLET_ADDRESS"
+        "wallet_address": "YOUR_UKY_WALLET_ADDRESS"
     },
     "security": {
         "session_timeout": 3600,

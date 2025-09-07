@@ -200,6 +200,20 @@ class ConfigManager
     }
 
     /**
+     * Get UkkeyCoin daemon configuration
+     */
+    public function getUkkeyCoinConfig()
+    {
+        return [
+            'daemon_host' => $this->get('ukkeycoin.daemon_host'),
+            'daemon_port' => $this->get('ukkeycoin.daemon_port'),
+            'daemon_user' => $this->get('ukkeycoin.daemon_user'),
+            'daemon_password' => $this->get('ukkeycoin.daemon_password'),
+            'wallet_address' => $this->get('ukkeycoin.wallet_address')
+        ];
+    }
+
+    /**
      * Get security configuration
      */
     public function getSecurityConfig()
