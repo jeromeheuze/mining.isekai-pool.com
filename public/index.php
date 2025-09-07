@@ -258,7 +258,7 @@ function getConfig($key, $default = '') {
     <!-- Footer -->
     <footer class="bg-dark text-light py-4 mt-5">
         <div class="container text-center">
-            <p>&copy; 2024 <?php echo htmlspecialchars(getConfig('pool.name', 'Isekai Multi-Coin Pool')); ?>. All rights reserved.</p>
+            <p>&copy; <?=date('Y');?> <?php echo htmlspecialchars(getConfig('pool.name', 'Isekai Multi-Coin Pool')); ?>. All rights reserved. Maintained by <a href="https://isekai-pool.com">Isekai Poll</a></a></p>
             <p>Mining Yenten (YTN) & KOTO (KOTO) - Secure, Reliable, Profitable</p>
         </div>
     </footer>
