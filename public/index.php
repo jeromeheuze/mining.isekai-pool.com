@@ -146,6 +146,48 @@ function getConfig($key, $default = '') {
                     </div>
                 </div>
             </div>
+
+            <!-- Blockchain Sync Status -->
+            <div class="row mt-4">
+                <div class="col-md-6 mb-4">
+                    <div class="stat-card rounded p-4">
+                        <h5><i class="fas fa-coins text-warning"></i> Yenten (YTN) Sync Status</h5>
+                        <div class="progress mb-2" style="height: 25px;">
+                            <div class="progress-bar bg-warning progress-bar-striped progress-bar-animated" 
+                                 role="progressbar" id="yenten-progress" style="width: 0%">
+                                <span id="yenten-progress-text">Loading...</span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <small><strong>Block Height:</strong> <span id="yenten-height">0</span></small>
+                            </div>
+                            <div class="col-6">
+                                <small><strong>Status:</strong> <span id="yenten-status">Connecting...</span></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="stat-card rounded p-4">
+                        <h5><i class="fas fa-coins text-success"></i> KOTO (KOTO) Sync Status</h5>
+                        <div class="progress mb-2" style="height: 25px;">
+                            <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" 
+                                 role="progressbar" id="koto-progress" style="width: 0%">
+                                <span id="koto-progress-text">Loading...</span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <small><strong>Block Height:</strong> <span id="koto-height">0</span></small>
+                            </div>
+                            <div class="col-6">
+                                <small><strong>Status:</strong> <span id="koto-status">Connecting...</span></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -302,6 +344,61 @@ function getConfig($key, $default = '') {
             document.getElementById('mining-command').value = command;
         }
 
+        // Update blockchain sync status
+        function updateBlockchainStatus() {
+            // Update Yenten status
+            fetch('/api/blockchain-status.php?coin=yenten')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const progress = Math.min(data.progress * 100, 100);
+                        document.getElementById('yenten-progress').style.width = progress + '%';
+                        document.getElementById('yenten-progress-text').textContent = progress.toFixed(2) + '%';
+                        document.getElementById('yenten-height').textContent = data.height.toLocaleString();
+                        document.getElementById('yenten-status').textContent = data.synced ? 'Synced' : 'Syncing...';
+                        
+                        if (data.synced) {
+                            document.getElementById('yenten-progress').classList.remove('progress-bar-animated');
+                            document.getElementById('yenten-progress').classList.add('bg-success');
+                        }
+                    } else {
+                        document.getElementById('yenten-status').textContent = 'Error: ' + data.error;
+                        document.getElementById('yenten-progress').classList.add('bg-danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('Yenten status error:', error);
+                    document.getElementById('yenten-status').textContent = 'Connection Error';
+                    document.getElementById('yenten-progress').classList.add('bg-danger');
+                });
+
+            // Update KOTO status
+            fetch('/api/blockchain-status.php?coin=koto')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const progress = Math.min(data.progress * 100, 100);
+                        document.getElementById('koto-progress').style.width = progress + '%';
+                        document.getElementById('koto-progress-text').textContent = progress.toFixed(2) + '%';
+                        document.getElementById('koto-height').textContent = data.height.toLocaleString();
+                        document.getElementById('koto-status').textContent = data.synced ? 'Synced' : 'Syncing...';
+                        
+                        if (data.synced) {
+                            document.getElementById('koto-progress').classList.remove('progress-bar-animated');
+                            document.getElementById('koto-progress').classList.add('bg-success');
+                        }
+                    } else {
+                        document.getElementById('koto-status').textContent = 'Error: ' + data.error;
+                        document.getElementById('koto-progress').classList.add('bg-danger');
+                    }
+                })
+                .catch(error => {
+                    console.error('KOTO status error:', error);
+                    document.getElementById('koto-status').textContent = 'Connection Error';
+                    document.getElementById('koto-progress').classList.add('bg-danger');
+                });
+        }
+
         // Auto-refresh pool stats every 30 seconds
         function updatePoolStats() {
             // This will be implemented with AJAX calls to the API
@@ -311,7 +408,9 @@ function getConfig($key, $default = '') {
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             updatePoolStats();
+            updateBlockchainStatus();
             setInterval(updatePoolStats, 30000); // Update every 30 seconds
+            setInterval(updateBlockchainStatus, 10000); // Update blockchain status every 10 seconds
         });
     </script>
 </body>
