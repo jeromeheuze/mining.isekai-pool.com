@@ -52,19 +52,82 @@ sudo chmod 700 "$ADVC_DATA_DIR"
 # Download AdventureCoin Core (latest release)
 echo "Downloading AdventureCoin Core..."
 ADVC_VERSION="5.0.0.2"
-ADVC_ARCHIVE="AdventureCoin-${ADVC_VERSION}-x86_64-linux-gnu.tar.gz"
-ADVC_URL="https://github.com/AdventureCoin-ADVC/AdventureCoin/releases/download/${ADVC_VERSION}/${ADVC_ARCHIVE}"
+
+# Try different possible archive names
+POSSIBLE_ARCHIVES=(
+    "AdventureCoin-${ADVC_VERSION}-x86_64-linux-gnu.tar.gz"
+    "adventurecoin-${ADVC_VERSION}-x86_64-linux-gnu.tar.gz"
+    "AdventureCoin-${ADVC_VERSION}-linux64.tar.gz"
+    "adventurecoin-${ADVC_VERSION}-linux64.tar.gz"
+    "AdventureCoin-${ADVC_VERSION}.tar.gz"
+    "adventurecoin-${ADVC_VERSION}.tar.gz"
+)
 
 cd /tmp
-if [ ! -f "$ADVC_ARCHIVE" ]; then
-    wget "$ADVC_URL"
+DOWNLOADED=false
+
+for ARCHIVE in "${POSSIBLE_ARCHIVES[@]}"; do
+    ADVC_URL="https://github.com/AdventureCoin-ADVC/AdventureCoin/releases/download/${ADVC_VERSION}/${ARCHIVE}"
+    echo "Trying to download: $ADVC_URL"
+    
+    if wget "$ADVC_URL" 2>/dev/null; then
+        echo "Successfully downloaded: $ARCHIVE"
+        ADVC_ARCHIVE="$ARCHIVE"
+        DOWNLOADED=true
+        break
+    else
+        echo "Failed to download: $ARCHIVE"
+        rm -f "$ARCHIVE" 2>/dev/null
+    fi
+done
+
+if [ "$DOWNLOADED" = false ]; then
+    echo "Error: Could not download AdventureCoin Core from any of the expected URLs."
+    echo ""
+    echo "Please manually download AdventureCoin Core from:"
+    echo "https://github.com/AdventureCoin-ADVC/AdventureCoin/releases/tag/${ADVC_VERSION}"
+    echo ""
+    echo "Then:"
+    echo "1. Download the appropriate Linux archive"
+    echo "2. Extract it to /tmp"
+    echo "3. Run this script again"
+    echo ""
+    echo "Alternatively, you can try building from source:"
+    echo "git clone https://github.com/AdventureCoin-ADVC/AdventureCoin.git"
+    echo "cd AdventureCoin"
+    echo "make"
+    echo ""
+    exit 1
 fi
 
 # Extract and install
 echo "Installing AdventureCoin Core..."
 tar -xzf "$ADVC_ARCHIVE"
-sudo cp "AdventureCoin-${ADVC_VERSION}/bin/adventurecoin-cli" /usr/local/bin/
-sudo cp "AdventureCoin-${ADVC_VERSION}/bin/adventurecoind" /usr/local/bin/
+
+# Find the extracted directory
+EXTRACTED_DIR=$(find . -maxdepth 1 -type d -name "*AdventureCoin*" -o -name "*adventurecoin*" | head -1)
+
+if [ -z "$EXTRACTED_DIR" ]; then
+    echo "Error: Could not find extracted AdventureCoin directory."
+    echo "Please check the downloaded archive and extract it manually."
+    exit 1
+fi
+
+echo "Found extracted directory: $EXTRACTED_DIR"
+
+# Copy binaries
+if [ -f "$EXTRACTED_DIR/bin/adventurecoin-cli" ] && [ -f "$EXTRACTED_DIR/bin/adventurecoind" ]; then
+    sudo cp "$EXTRACTED_DIR/bin/adventurecoin-cli" /usr/local/bin/
+    sudo cp "$EXTRACTED_DIR/bin/adventurecoind" /usr/local/bin/
+elif [ -f "$EXTRACTED_DIR/adventurecoin-cli" ] && [ -f "$EXTRACTED_DIR/adventurecoind" ]; then
+    sudo cp "$EXTRACTED_DIR/adventurecoin-cli" /usr/local/bin/
+    sudo cp "$EXTRACTED_DIR/adventurecoind" /usr/local/bin/
+else
+    echo "Error: Could not find AdventureCoin binaries in the extracted directory."
+    echo "Please check the downloaded archive structure."
+    exit 1
+fi
+
 sudo chmod +x /usr/local/bin/adventurecoin-*
 
 # Create configuration file
