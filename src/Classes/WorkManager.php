@@ -50,7 +50,10 @@ class WorkManager
         try {
             // Check if daemon is synced
             if (!$this->yentenRPC->isSynced()) {
-                throw new \Exception("Yenten daemon is not synced");
+                $this->log("Yenten daemon is not synced, using fallback work");
+                $this->currentWork = $this->getFallbackWork();
+                $this->lastWorkUpdate = time();
+                return;
             }
             
             // Get block template
