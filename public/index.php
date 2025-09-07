@@ -177,12 +177,12 @@ function getConfig($key, $default = '') {
                     <!-- Yenten Mining -->
                     <div class="mb-4">
                         <h5><i class="fas fa-coins text-warning"></i> Yenten (YTN) Mining</h5>
-                        <p><strong>Algorithm:</strong> YescryptR16</p>
+                        <p><strong>Algorithm:</strong> YespowerR16</p>
                         <p><strong>Port:</strong> 3333</p>
                         <p><strong>Username:</strong> Your Yenten wallet address</p>
                         <p><strong>Password:</strong> x (or any password)</p>
                         <div class="alert alert-info">
-                            <strong>Example:</strong> ccminer -a yescryptr16 -o stratum+tcp://mining.isekai-pool.com:3333 -u YOUR_YTN_ADDRESS -p x
+                            <strong>Example:</strong> ccminer -a YespowerR16 -o stratum+tcp://mining.isekai-pool.com:3333 -u YOUR_YTN_ADDRESS -p x
                         </div>
                     </div>
 
@@ -219,7 +219,7 @@ function getConfig($key, $default = '') {
                         <div class="mb-3">
                             <label class="form-label">Select Coin:</label>
                             <select class="form-select" id="coin-select" onchange="updateMiningForm()">
-                                <option value="yenten">Yenten (YTN) - YescryptR16</option>
+                                <option value="yenten">Yenten (YTN) - YespowerR16</option>
                                 <option value="koto">KOTO (KOTO) - Yescrypt</option>
                             </select>
                         </div>
@@ -294,7 +294,7 @@ function getConfig($key, $default = '') {
             const poolHost = '<?php echo parse_url(getConfig('pool.url', 'https://mining.isekai-pool.com'), PHP_URL_HOST); ?>';
             
             if (coinSelect.value === 'yenten') {
-                command = `ccminer -a yescryptr16 -o stratum+tcp://${poolHost}:3333 -u ${walletAddress} -p x`;
+                command = `ccminer -a YespowerR16 -o stratum+tcp://${poolHost}:3333 -u ${walletAddress} -p x`;
             } else if (coinSelect.value === 'koto') {
                 command = `ccminer -a yescrypt -o stratum+tcp://${poolHost}:4444 -u ${walletAddress} -p x`;
             }
