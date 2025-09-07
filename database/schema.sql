@@ -7,7 +7,7 @@ USE yenten_pool;
 -- Users table (miner addresses, registration, settings)
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    address VARCHAR(95) NOT NULL UNIQUE COMMENT 'Yenten wallet address',
+    address VARCHAR(95) NOT NULL COMMENT 'Wallet address',
     username VARCHAR(50) UNIQUE COMMENT 'Optional username',
     email VARCHAR(255) COMMENT 'Contact email',
     password_hash VARCHAR(255) COMMENT 'Hashed password for web access',
@@ -19,9 +19,11 @@ CREATE TABLE users (
     total_earnings DECIMAL(20,8) DEFAULT 0.00000000,
     pending_balance DECIMAL(20,8) DEFAULT 0.00000000,
     paid_balance DECIMAL(20,8) DEFAULT 0.00000000,
+    preferred_coin VARCHAR(20) DEFAULT 'yenten' COMMENT 'Preferred mining coin',
     INDEX idx_address (address),
     INDEX idx_username (username),
-    INDEX idx_active (is_active)
+    INDEX idx_active (is_active),
+    INDEX idx_coin (preferred_coin)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Workers table (individual mining rigs per user)
@@ -38,10 +40,12 @@ CREATE TABLE workers (
     shares_accepted BIGINT DEFAULT 0,
     shares_rejected BIGINT DEFAULT 0,
     difficulty DOUBLE DEFAULT 1.0,
+    coin VARCHAR(20) DEFAULT 'yenten' COMMENT 'Mining coin',
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_worker (user_id, worker_name),
+    UNIQUE KEY unique_worker (user_id, worker_name, coin),
     INDEX idx_user_active (user_id, is_active),
-    INDEX idx_last_seen (last_seen)
+    INDEX idx_last_seen (last_seen),
+    INDEX idx_coin (coin)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Shares table (submitted mining shares with validation)
@@ -60,6 +64,7 @@ CREATE TABLE shares (
     submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     processed_at TIMESTAMP NULL,
     reward DECIMAL(20,8) DEFAULT 0.00000000,
+    coin VARCHAR(20) DEFAULT 'yenten' COMMENT 'Mining coin',
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (worker_id) REFERENCES workers(id) ON DELETE CASCADE,
     INDEX idx_user_time (user_id, submitted_at),
@@ -67,7 +72,8 @@ CREATE TABLE shares (
     INDEX idx_block_height (block_height),
     INDEX idx_valid (is_valid),
     INDEX idx_submitted (submitted_at),
-    UNIQUE KEY unique_share (hash, nonce)
+    INDEX idx_coin (coin),
+    UNIQUE KEY unique_share (hash, nonce, coin)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Blocks table (found blocks and confirmations)

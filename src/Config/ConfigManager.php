@@ -172,6 +172,20 @@ class ConfigManager
     }
 
     /**
+     * Get KOTO daemon configuration
+     */
+    public function getKotoConfig()
+    {
+        return [
+            'daemon_host' => $this->get('koto.daemon_host'),
+            'daemon_port' => $this->get('koto.daemon_port'),
+            'daemon_user' => $this->get('koto.daemon_user'),
+            'daemon_password' => $this->get('koto.daemon_password'),
+            'wallet_address' => $this->get('koto.wallet_address')
+        ];
+    }
+
+    /**
      * Get security configuration
      */
     public function getSecurityConfig()
