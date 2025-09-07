@@ -66,7 +66,7 @@ function getConfig($key, $default = '') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars(getConfig('pool.name', 'Yenten Mining Pool')); ?> - Yenten Mining Pool</title>
+    <title><?php echo htmlspecialchars(getConfig('pool.name', 'Isekai Multi-Coin Pool')); ?> - Yenten & KOTO Mining Pool</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -92,7 +92,7 @@ function getConfig($key, $default = '') {
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="/">
-                <i class="fas fa-coins"></i> <?php echo htmlspecialchars(getConfig('pool.name', 'Yenten Mining Pool')); ?>
+                <i class="fas fa-coins"></i> <?php echo htmlspecialchars(getConfig('pool.name', 'Isekai Multi-Coin Pool')); ?>
             </a>
             <div class="navbar-nav ms-auto">
                 <a class="nav-link" href="#stats">Pool Stats</a>
@@ -109,9 +109,9 @@ function getConfig($key, $default = '') {
             <div class="row text-center">
                 <div class="col-12">
                     <h1 class="display-4 mb-4">
-                        <i class="fas fa-server"></i> Yenten Mining Pool
+                        <i class="fas fa-server"></i> Multi-Coin Mining Pool
                     </h1>
-                    <p class="lead">Mine Yenten (YTN) with our reliable and efficient mining pool</p>
+                    <p class="lead">Mine Yenten (YTN) and KOTO (KOTO) with our reliable and efficient mining pool</p>
                 </div>
             </div>
             
@@ -158,13 +158,13 @@ function getConfig($key, $default = '') {
                     <div class="row">
                         <div class="col-md-6">
                             <p><strong>Pool URL:</strong> <?php echo htmlspecialchars(getConfig('pool.url', 'https://mining.isekai-pool.com')); ?></p>
-                            <p><strong>Minimum Payout:</strong> <?php echo getConfig('pool.minimum_payout', 0.1); ?> YTN</p>
-                            <p><strong>Payout Threshold:</strong> <?php echo getConfig('pool.payout_threshold', 0.5); ?> YTN</p>
+                            <p><strong>Supported Coins:</strong> Yenten (YTN) & KOTO (KOTO)</p>
+                            <p><strong>Pool Fee:</strong> <?php echo getConfig('pool.fee_percent', 1.0); ?>%</p>
                         </div>
                         <div class="col-md-6">
-                            <p><strong>Block Reward:</strong> <?php echo getConfig('pool.block_reward', 50.0); ?> YTN</p>
-                            <p><strong>Pool Fee:</strong> <?php echo getConfig('pool.fee_percent', 1.0); ?>%</p>
                             <p><strong>Payout Method:</strong> PPLNS</p>
+                            <p><strong>Minimum Payout:</strong> 0.1 YTN / 0.1 KOTO</p>
+                            <p><strong>Payout Threshold:</strong> 0.5 YTN / 0.5 KOTO</p>
                         </div>
                     </div>
                 </div>
@@ -173,25 +173,36 @@ function getConfig($key, $default = '') {
                 <div class="mining-ports rounded p-4 mb-4">
                     <h3><i class="fas fa-cogs"></i> Mining Configuration</h3>
                     <p><strong>Stratum Server:</strong> <?php echo htmlspecialchars(getConfig('pool.url', 'https://mining.isekai-pool.com')); ?></p>
-                    <p><strong>Ports:</strong></p>
-                    <ul>
-                        <?php 
-                        $ports = getConfig('pool.stratum_ports', [3333, 4444, 5555]);
-                        if (is_array($ports)) {
-                            foreach ($ports as $port): 
-                        ?>
-                        <li>Port <?php echo $port; ?> - Difficulty: <?php echo $port / 1000; ?></li>
-                        <?php 
-                            endforeach;
-                        } else {
-                            echo "<li>Port 3333 - Difficulty: 3.333</li>";
-                            echo "<li>Port 4444 - Difficulty: 4.444</li>";
-                            echo "<li>Port 5555 - Difficulty: 5.555</li>";
-                        }
-                        ?>
-                    </ul>
-                    <p><strong>Username:</strong> Your Yenten wallet address</p>
-                    <p><strong>Password:</strong> x (or any password)</p>
+                    
+                    <!-- Yenten Mining -->
+                    <div class="mb-4">
+                        <h5><i class="fas fa-coins text-warning"></i> Yenten (YTN) Mining</h5>
+                        <p><strong>Algorithm:</strong> YescryptR16</p>
+                        <p><strong>Port:</strong> 3333</p>
+                        <p><strong>Username:</strong> Your Yenten wallet address</p>
+                        <p><strong>Password:</strong> x (or any password)</p>
+                        <div class="alert alert-info">
+                            <strong>Example:</strong> ccminer -a yescryptr16 -o stratum+tcp://mining.isekai-pool.com:3333 -u YOUR_YTN_ADDRESS -p x
+                        </div>
+                    </div>
+
+                    <!-- KOTO Mining -->
+                    <div class="mb-4">
+                        <h5><i class="fas fa-coins text-success"></i> KOTO (KOTO) Mining</h5>
+                        <p><strong>Algorithm:</strong> Yescrypt</p>
+                        <p><strong>Port:</strong> 4444</p>
+                        <p><strong>Username:</strong> Your KOTO wallet address</p>
+                        <p><strong>Password:</strong> x (or any password)</p>
+                        <div class="alert alert-info">
+                            <strong>Example:</strong> ccminer -a yescrypt -o stratum+tcp://mining.isekai-pool.com:4444 -u YOUR_KOTO_ADDRESS -p x
+                        </div>
+                    </div>
+
+                    <!-- Additional Ports -->
+                    <div class="mb-4">
+                        <h5><i class="fas fa-server text-primary"></i> Additional Ports</h5>
+                        <p><strong>Port 5555:</strong> Backup/Alternative (Default: Yenten)</p>
+                    </div>
                 </div>
             </div>
 
@@ -202,11 +213,24 @@ function getConfig($key, $default = '') {
                         <h5><i class="fas fa-rocket"></i> Quick Start</h5>
                     </div>
                     <div class="card-body">
-                        <p>Start mining Yenten with your favorite miner:</p>
+                        <p>Start mining with your favorite miner:</p>
+                        
+                        <!-- Coin Selection -->
                         <div class="mb-3">
-                            <label class="form-label">Your Yenten Address:</label>
-                            <input type="text" class="form-control" id="wallet-address" placeholder="Enter your YTN address">
+                            <label class="form-label">Select Coin:</label>
+                            <select class="form-select" id="coin-select" onchange="updateMiningForm()">
+                                <option value="yenten">Yenten (YTN) - YescryptR16</option>
+                                <option value="koto">KOTO (KOTO) - Yescrypt</option>
+                            </select>
                         </div>
+
+                        <!-- Wallet Address -->
+                        <div class="mb-3">
+                            <label class="form-label" id="wallet-label">Your Yenten Address:</label>
+                            <input type="text" class="form-control" id="wallet-address" placeholder="Enter your wallet address">
+                        </div>
+
+                        <!-- Generate Command -->
                         <button class="btn btn-primary" onclick="generateMiningCommand()">
                             <i class="fas fa-copy"></i> Generate Command
                         </button>
@@ -234,22 +258,47 @@ function getConfig($key, $default = '') {
     <!-- Footer -->
     <footer class="bg-dark text-light py-4 mt-5">
         <div class="container text-center">
-            <p>&copy; 2024 <?php echo htmlspecialchars(getConfig('pool.name', 'Isekai Yenten Pool')); ?>. All rights reserved.</p>
-            <p>Mining Yenten (YTN) - Secure, Reliable, Profitable</p>
+            <p>&copy; 2024 <?php echo htmlspecialchars(getConfig('pool.name', 'Isekai Multi-Coin Pool')); ?>. All rights reserved.</p>
+            <p>Mining Yenten (YTN) & KOTO (KOTO) - Secure, Reliable, Profitable</p>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Update mining form based on coin selection
+        function updateMiningForm() {
+            const coinSelect = document.getElementById('coin-select');
+            const walletLabel = document.getElementById('wallet-label');
+            const walletInput = document.getElementById('wallet-address');
+            
+            if (coinSelect.value === 'yenten') {
+                walletLabel.textContent = 'Your Yenten Address:';
+                walletInput.placeholder = 'Enter your YTN address';
+            } else if (coinSelect.value === 'koto') {
+                walletLabel.textContent = 'Your KOTO Address:';
+                walletInput.placeholder = 'Enter your KOTO address';
+            }
+        }
+
         // Generate mining command
         function generateMiningCommand() {
             const walletAddress = document.getElementById('wallet-address').value;
+            const coinSelect = document.getElementById('coin-select');
+            
             if (!walletAddress) {
-                alert('Please enter your Yenten wallet address');
+                alert('Please enter your wallet address');
                 return;
             }
             
-            const command = `ccminer -a yescryptr16 -o stratum+tcp://<?php echo parse_url(getConfig('pool.url', 'https://mining.isekai-pool.com'), PHP_URL_HOST); ?>:3333 -u ${walletAddress} -p x`;
+            let command = '';
+            const poolHost = '<?php echo parse_url(getConfig('pool.url', 'https://mining.isekai-pool.com'), PHP_URL_HOST); ?>';
+            
+            if (coinSelect.value === 'yenten') {
+                command = `ccminer -a yescryptr16 -o stratum+tcp://${poolHost}:3333 -u ${walletAddress} -p x`;
+            } else if (coinSelect.value === 'koto') {
+                command = `ccminer -a yescrypt -o stratum+tcp://${poolHost}:4444 -u ${walletAddress} -p x`;
+            }
+            
             document.getElementById('mining-command').value = command;
         }
 
