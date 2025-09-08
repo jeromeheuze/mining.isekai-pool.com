@@ -37,7 +37,7 @@ date_default_timezone_set('UTC');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Help & Getting Started - <?php echo htmlspecialchars(getConfig('pool.name', 'Isekai Multi-Coin Pool')); ?></title>
+    <title>Help & Getting Started - <?php echo htmlspecialchars(getConfig('pool.name', 'Isekai Pool')); ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -65,7 +65,6 @@ date_default_timezone_set('UTC');
             margin-bottom: 2rem;
         }
         .coin-yenten { border-left-color: #ffc107; }
-        .coin-koto { border-left-color: #28a745; }
     </style>
 </head>
 <body>
@@ -73,13 +72,14 @@ date_default_timezone_set('UTC');
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="/">
-                <i class="fas fa-coins"></i> <?php echo htmlspecialchars(getConfig('pool.name', 'Isekai Multi-Coin Pool')); ?>
+                <i class="fas fa-coins"></i> <?php echo htmlspecialchars(getConfig('pool.name', 'Isekai Pool')); ?>
             </a>
             <div class="navbar-nav ms-auto">
                 <a class="nav-link" href="/">Home</a>
                 <a class="nav-link" href="/stats.php">Pool Stats</a>
                 <a class="nav-link" href="/miners.php">Top Miners</a>
                 <a class="nav-link" href="/blocks.php">Recent Blocks</a>
+                <a class="nav-link" href="/wallet.php">Wallet</a>
                 <a class="nav-link active" href="/help.php">Help</a>
             </div>
         </div>
@@ -169,28 +169,6 @@ date_default_timezone_set('UTC');
             </div>
         </div>
 
-        <!-- KOTO Mining -->
-        <div class="coin-section coin-koto">
-            <h3><i class="fas fa-coins text-success"></i> KOTO (KOTO) Mining</h3>
-            <div class="row">
-                <div class="col-md-6">
-                    <h5>Pool Settings:</h5>
-                    <ul>
-                        <li><strong>Algorithm:</strong> Yescrypt</li>
-                        <li><strong>Pool URL:</strong> stratum+tcp://<?php echo parse_url(getConfig('pool.url', 'https://mining.isekai-pool.com'), PHP_URL_HOST); ?>:4444</li>
-                        <li><strong>Username:</strong> Your KOTO wallet address</li>
-                        <li><strong>Password:</strong> x (or any password)</li>
-                    </ul>
-                </div>
-                <div class="col-md-6">
-                    <h5>Example Commands:</h5>
-                    <div class="code-block">
-                        <strong>ccminer:</strong><br>
-                        ccminer -a yescrypt -o stratum+tcp://<?php echo parse_url(getConfig('pool.url', 'https://mining.isekai-pool.com'), PHP_URL_HOST); ?>:4444 -u YOUR_KOTO_ADDRESS -p x
-                    </div>
-                </div>
-            </div>
-        </div>
 
     </div>
 
@@ -251,8 +229,8 @@ date_default_timezone_set('UTC');
                     <div class="card-body">
                         <ul class="list-unstyled">
                             <li><strong>Pool Fee:</strong> <?php echo getConfig('pool.fee_percent', 1.0); ?>%</li>
-                            <li><strong>Minimum Payout:</strong> 0.1 YTN / 0.1 KOTO</li>
-                            <li><strong>Payout Threshold:</strong> 0.5 YTN / 0.5 KOTO</li>
+                            <li><strong>Minimum Payout:</strong> 0.1 YTN</li>
+                            <li><strong>Payout Threshold:</strong> 0.5 YTN</li>
                             <li><strong>Payout Method:</strong> PPLNS (Pay Per Last N Shares)</li>
                             <li><strong>Payout Frequency:</strong> Automatic (when threshold reached)</li>
                         </ul>

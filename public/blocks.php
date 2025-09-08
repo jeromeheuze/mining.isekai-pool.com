@@ -37,7 +37,7 @@ date_default_timezone_set('UTC');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recent Blocks - <?php echo htmlspecialchars(getConfig('pool.name', 'Isekai Multi-Coin Pool')); ?></title>
+    <title>Recent Blocks - <?php echo htmlspecialchars(getConfig('pool.name', 'Isekai Pool')); ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -75,13 +75,14 @@ date_default_timezone_set('UTC');
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="/">
-                <i class="fas fa-coins"></i> <?php echo htmlspecialchars(getConfig('pool.name', 'Isekai Multi-Coin Pool')); ?>
+                <i class="fas fa-coins"></i> <?php echo htmlspecialchars(getConfig('pool.name', 'Isekai Pool')); ?>
             </a>
             <div class="navbar-nav ms-auto">
                 <a class="nav-link" href="/">Home</a>
                 <a class="nav-link" href="/stats.php">Pool Stats</a>
                 <a class="nav-link" href="/miners.php">Top Miners</a>
                 <a class="nav-link active" href="/blocks.php">Recent Blocks</a>
+                <a class="nav-link" href="/wallet.php">Wallet</a>
                 <a class="nav-link" href="/help.php">Help</a>
             </div>
         </div>
@@ -156,7 +157,6 @@ date_default_timezone_set('UTC');
                                 <select class="form-select" id="coin-filter" onchange="filterBlocks()">
                                     <option value="all">All Coins</option>
                                     <option value="yenten">Yenten (YTN)</option>
-                                    <option value="koto">KOTO (KOTO)</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
@@ -236,7 +236,6 @@ date_default_timezone_set('UTC');
         function getCoinBadgeClass(coin) {
             switch(coin) {
                 case 'yenten': return 'bg-warning text-dark';
-                case 'koto': return 'bg-success';
                 default: return 'bg-secondary';
             }
         }
@@ -245,7 +244,6 @@ date_default_timezone_set('UTC');
         function getCoinDisplayName(coin) {
             switch(coin) {
                 case 'yenten': return 'YTN';
-                case 'koto': return 'KOTO';
                 default: return coin.toUpperCase();
             }
         }
