@@ -47,7 +47,7 @@ try {
         'miners' => []
     ];
 
-    $supportedCoins = ['yenten', 'koto', 'ukkeycoin'];
+    $supportedCoins = ['yenten', 'koto'];
     
     if ($coin !== 'all' && in_array($coin, $supportedCoins)) {
         $supportedCoins = [$coin];

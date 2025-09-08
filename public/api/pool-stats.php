@@ -45,7 +45,7 @@ try {
         'coins' => []
     ];
 
-    $supportedCoins = ['yenten', 'koto', 'ukkeycoin'];
+    $supportedCoins = ['yenten', 'koto'];
     
     if ($coin !== 'all' && in_array($coin, $supportedCoins)) {
         $supportedCoins = [$coin];
@@ -128,13 +128,6 @@ try {
                 'port' => $config['koto']['daemon_port'] ?? 9983,
                 'user' => $config['koto']['daemon_user'] ?? 'koto_rpc_user',
                 'password' => $config['koto']['daemon_password'] ?? 'koto_rpc_password'
-            ];
-        } else if ($coinName === 'ukkeycoin') {
-            $coinConfig = [
-                'host' => $config['ukkeycoin']['daemon_host'] ?? 'localhost',
-                'port' => $config['ukkeycoin']['daemon_port'] ?? 9985,
-                'user' => $config['ukkeycoin']['daemon_user'] ?? 'uky_rpc_user',
-                'password' => $config['ukkeycoin']['daemon_password'] ?? 'uky_rpc_password'
             ];
         }
 

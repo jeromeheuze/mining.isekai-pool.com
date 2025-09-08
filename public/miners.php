@@ -105,7 +105,6 @@ date_default_timezone_set('UTC');
                                     <option value="all">All Coins</option>
                                     <option value="yenten">Yenten (YTN)</option>
                                     <option value="koto">KOTO (KOTO)</option>
-                                    <option value="ukkeycoin">UkkeyCoin (UKY)</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
@@ -201,7 +200,6 @@ date_default_timezone_set('UTC');
             switch(coin) {
                 case 'yenten': return 'bg-warning text-dark';
                 case 'koto': return 'bg-success';
-                case 'ukkeycoin': return 'bg-info';
                 default: return 'bg-secondary';
             }
         }
@@ -211,7 +209,6 @@ date_default_timezone_set('UTC');
             switch(coin) {
                 case 'yenten': return 'YTN';
                 case 'koto': return 'KOTO';
-                case 'ukkeycoin': return 'UKY';
                 default: return coin.toUpperCase();
             }
         }

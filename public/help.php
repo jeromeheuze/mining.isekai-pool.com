@@ -66,7 +66,6 @@ date_default_timezone_set('UTC');
         }
         .coin-yenten { border-left-color: #ffc107; }
         .coin-koto { border-left-color: #28a745; }
-        .coin-ukkeycoin { border-left-color: #17a2b8; }
     </style>
 </head>
 <body>
@@ -193,28 +192,6 @@ date_default_timezone_set('UTC');
             </div>
         </div>
 
-        <!-- UkkeyCoin Mining -->
-        <div class="coin-section coin-ukkeycoin">
-            <h3><i class="fas fa-coins text-info"></i> UkkeyCoin (UKY) Mining</h3>
-            <div class="row">
-                <div class="col-md-6">
-                    <h5>Pool Settings:</h5>
-                    <ul>
-                        <li><strong>Algorithm:</strong> YesPoWer</li>
-                        <li><strong>Pool URL:</strong> stratum+tcp://<?php echo parse_url(getConfig('pool.url', 'https://mining.isekai-pool.com'), PHP_URL_HOST); ?>:6666</li>
-                        <li><strong>Username:</strong> Your UkkeyCoin wallet address</li>
-                        <li><strong>Password:</strong> x (or any password)</li>
-                    </ul>
-                </div>
-                <div class="col-md-6">
-                    <h5>Example Commands:</h5>
-                    <div class="code-block">
-                        <strong>ccminer:</strong><br>
-                        ccminer -a YesPoWer -o stratum+tcp://<?php echo parse_url(getConfig('pool.url', 'https://mining.isekai-pool.com'), PHP_URL_HOST); ?>:6666 -u YOUR_UKY_ADDRESS -p x
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Supported Miners -->
@@ -274,8 +251,8 @@ date_default_timezone_set('UTC');
                     <div class="card-body">
                         <ul class="list-unstyled">
                             <li><strong>Pool Fee:</strong> <?php echo getConfig('pool.fee_percent', 1.0); ?>%</li>
-                            <li><strong>Minimum Payout:</strong> 0.1 YTN / 0.1 KOTO / 0.1 UKY</li>
-                            <li><strong>Payout Threshold:</strong> 0.5 YTN / 0.5 KOTO / 0.5 UKY</li>
+                            <li><strong>Minimum Payout:</strong> 0.1 YTN / 0.1 KOTO</li>
+                            <li><strong>Payout Threshold:</strong> 0.5 YTN / 0.5 KOTO</li>
                             <li><strong>Payout Method:</strong> PPLNS (Pay Per Last N Shares)</li>
                             <li><strong>Payout Frequency:</strong> Automatic (when threshold reached)</li>
                         </ul>

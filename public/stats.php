@@ -241,50 +241,6 @@ date_default_timezone_set('UTC');
                 </div>
             </div>
 
-            <!-- UkkeyCoin Stats -->
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header bg-info text-white">
-                            <h5 class="mb-0"><i class="fas fa-coins"></i> UkkeyCoin (UKY) Statistics</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-3 text-center">
-                                    <h6>Pool Hashrate</h6>
-                                    <p class="hashrate-display" id="ukkeycoin-hashrate">0 H/s</p>
-                                </div>
-                                <div class="col-md-3 text-center">
-                                    <h6>Active Miners</h6>
-                                    <p id="ukkeycoin-miners">0</p>
-                                </div>
-                                <div class="col-md-3 text-center">
-                                    <h6>Blocks Found</h6>
-                                    <p id="ukkeycoin-blocks">0</p>
-                                </div>
-                                <div class="col-md-3 text-center">
-                                    <h6>Block Height</h6>
-                                    <p id="ukkeycoin-height">0</p>
-                                </div>
-                            </div>
-                            <div class="row mt-3">
-                                <div class="col-md-4 text-center">
-                                    <h6>Network Difficulty</h6>
-                                    <p id="ukkeycoin-difficulty">0</p>
-                                </div>
-                                <div class="col-md-4 text-center">
-                                    <h6>Network Hashrate</h6>
-                                    <p class="hashrate-display" id="ukkeycoin-network-hashrate">0 H/s</p>
-                                </div>
-                                <div class="col-md-4 text-center">
-                                    <h6>Last Block</h6>
-                                    <p id="ukkeycoin-last-block">Never</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -298,8 +254,8 @@ date_default_timezone_set('UTC');
                     </div>
                     <div class="card-body">
                         <p><strong>Pool Fee:</strong> <?php echo getConfig('pool.fee_percent', 1.0); ?>%</p>
-                        <p><strong>Minimum Payout:</strong> 0.1 YTN / 0.1 KOTO / 0.1 UKY</p>
-                        <p><strong>Payout Threshold:</strong> 0.5 YTN / 0.5 KOTO / 0.5 UKY</p>
+                        <p><strong>Minimum Payout:</strong> 0.1 YTN / 0.1 KOTO</p>
+                        <p><strong>Payout Threshold:</strong> 0.5 YTN / 0.5 KOTO</p>
                         <p><strong>Payout Method:</strong> PPLNS</p>
                     </div>
                 </div>
@@ -365,7 +321,7 @@ date_default_timezone_set('UTC');
                         document.getElementById('total-blocks').textContent = formatNumber(data.total.blocks_found);
 
                         // Update individual coin stats
-                        ['yenten', 'koto', 'ukkeycoin'].forEach(coin => {
+                        ['yenten', 'koto'].forEach(coin => {
                             if (data.coins[coin]) {
                                 const coinData = data.coins[coin];
                                 
