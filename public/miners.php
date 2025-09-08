@@ -72,6 +72,7 @@ date_default_timezone_set('UTC');
                 <a class="nav-link" href="/stats.php">Pool Stats</a>
                 <a class="nav-link active" href="/miners.php">Top Miners</a>
                 <a class="nav-link" href="/blocks.php">Recent Blocks</a>
+                <a class="nav-link" href="/wallet.php">Wallet</a>
                 <a class="nav-link" href="/help.php">Help</a>
             </div>
         </div>

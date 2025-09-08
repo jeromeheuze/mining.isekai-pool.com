@@ -1,25 +1,25 @@
 <?php
+/**
+ * Simple Miners API Test
+ */
+
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 
 try {
-    // Database connection - exact same as working miners API
+    // Simple database connection
     $pdo = new PDO('mysql:host=localhost;port=3306;dbname=yenten_pool', 'pool_user', 'D|Hm3"K12<Zv');
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
-    $stmt = $pdo->query("SELECT COUNT(*) as total_blocks FROM blocks");
+    // Simple query to test
+    $stmt = $pdo->query("SELECT COUNT(*) as total_shares FROM shares");
     $result = $stmt->fetch();
     
     echo json_encode([
         'success' => true,
-        'timestamp' => time(),
-        'blocks' => [],
-        'summary' => [
-            'total_blocks' => (int)$result['total_blocks'],
-            'confirmed_blocks' => 0,
-            'pending_blocks' => 0,
-            'total_reward' => 0
-        ]
+        'test' => 'Database connection working',
+        'total_shares' => $result['total_shares'],
+        'timestamp' => time()
     ]);
     
 } catch (Exception $e) {

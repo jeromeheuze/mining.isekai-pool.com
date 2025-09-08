@@ -1,0 +1,94 @@
+<?php
+/**
+ * Blocks API - Working Version
+ * Returns information about found blocks
+ */
+
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+
+try {
+    // Database connection
+    $pdo = new PDO('mysql:host=localhost;port=3306;dbname=yenten_pool', 'pool_user', 'D|Hm3"K12<Zv');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    
+    // Get parameters
+    $coin = $_GET['coin'] ?? 'all';
+    $limit = (int)($_GET['limit'] ?? 20);
+    $limit = min($limit, 100); // Max 100 results
+    
+    // Query to get recent blocks
+    $stmt = $pdo->query("
+        SELECT 
+            b.*,
+            u.address as username,
+            CASE 
+                WHEN b.found_by_worker_id = 1 THEN CONCAT(u.address, ' (Main)')
+                WHEN b.found_by_worker_id = 2 THEN CONCAT(u.address, ' (HiveOS)')
+                ELSE CONCAT(u.address, ' (Worker ', b.found_by_worker_id, ')')
+            END as worker_name
+        FROM blocks b
+        LEFT JOIN users u ON b.found_by_user_id = u.id
+        ORDER BY b.created_at DESC
+        LIMIT " . intval($limit)
+    ");
+    
+    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $blocks = [];
+    
+    foreach ($results as $row) {
+        // Calculate time since block was found
+        $blockTime = new DateTime($row['created_at']);
+        $now = new DateTime();
+        $timeDiff = $now->diff($blockTime);
+        
+        $timeAgo = '';
+        if ($timeDiff->d > 0) {
+            $timeAgo = $timeDiff->d . ' day' . ($timeDiff->d > 1 ? 's' : '') . ' ago';
+        } elseif ($timeDiff->h > 0) {
+            $timeAgo = $timeDiff->h . ' hour' . ($timeDiff->h > 1 ? 's' : '') . ' ago';
+        } elseif ($timeDiff->i > 0) {
+            $timeAgo = $timeDiff->i . ' minute' . ($timeDiff->i > 1 ? 's' : '') . ' ago';
+        } else {
+            $timeAgo = 'Just now';
+        }
+
+        $blocks[] = [
+            'id' => (int)$row['id'],
+            'coin' => 'yenten',
+            'block_hash' => $row['hash'],
+            'block_height' => (int)$row['height'],
+            'difficulty' => (float)$row['difficulty'],
+            'reward' => (float)$row['pool_reward'],
+            'status' => $row['is_confirmed'] ? 'confirmed' : 'pending',
+            'created_at' => $row['created_at'],
+            'time_ago' => $timeAgo,
+            'worker_name' => $row['worker_name'] ?? 'Unknown',
+            'username' => $row['username'] ?? 'Unknown',
+            'share_count' => 0, // Will be calculated separately if needed
+            'confirmed_at' => $row['confirmed_at']
+        ];
+    }
+    
+    // Add summary statistics
+    $summary = [
+        'total_blocks' => count($blocks),
+        'confirmed_blocks' => count(array_filter($blocks, function($b) { return $b['status'] === 'confirmed'; })),
+        'pending_blocks' => count(array_filter($blocks, function($b) { return $b['status'] === 'pending'; })),
+        'total_reward' => array_sum(array_column($blocks, 'reward'))
+    ];
+    
+    echo json_encode([
+        'success' => true,
+        'timestamp' => time(),
+        'blocks' => $blocks,
+        'summary' => $summary
+    ]);
+    
+} catch (Exception $e) {
+    echo json_encode([
+        'success' => false,
+        'error' => $e->getMessage()
+    ]);
+}
+?>

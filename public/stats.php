@@ -77,6 +77,7 @@ date_default_timezone_set('UTC');
                 <a class="nav-link active" href="/stats.php">Pool Stats</a>
                 <a class="nav-link" href="/miners.php">Top Miners</a>
                 <a class="nav-link" href="/blocks.php">Recent Blocks</a>
+                <a class="nav-link" href="/wallet.php">Wallet</a>
                 <a class="nav-link" href="/help.php">Help</a>
             </div>
         </div>
@@ -196,50 +197,6 @@ date_default_timezone_set('UTC');
                 </div>
             </div>
 
-            <!-- KOTO Stats -->
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header bg-success text-white">
-                            <h5 class="mb-0"><i class="fas fa-coins"></i> KOTO (KOTO) Statistics</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-3 text-center">
-                                    <h6>Pool Hashrate</h6>
-                                    <p class="hashrate-display" id="koto-hashrate">0 H/s</p>
-                                </div>
-                                <div class="col-md-3 text-center">
-                                    <h6>Active Miners</h6>
-                                    <p id="koto-miners">0</p>
-                                </div>
-                                <div class="col-md-3 text-center">
-                                    <h6>Blocks Found</h6>
-                                    <p id="koto-blocks">0</p>
-                                </div>
-                                <div class="col-md-3 text-center">
-                                    <h6>Block Height</h6>
-                                    <p id="koto-height">0</p>
-                                </div>
-                            </div>
-                            <div class="row mt-3">
-                                <div class="col-md-4 text-center">
-                                    <h6>Network Difficulty</h6>
-                                    <p id="koto-difficulty">0</p>
-                                </div>
-                                <div class="col-md-4 text-center">
-                                    <h6>Network Hashrate</h6>
-                                    <p class="hashrate-display" id="koto-network-hashrate">0 H/s</p>
-                                </div>
-                                <div class="col-md-4 text-center">
-                                    <h6>Last Block</h6>
-                                    <p id="koto-last-block">Never</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
         </div>
     </div>
@@ -254,8 +211,8 @@ date_default_timezone_set('UTC');
                     </div>
                     <div class="card-body">
                         <p><strong>Pool Fee:</strong> <?php echo getConfig('pool.fee_percent', 1.0); ?>%</p>
-                        <p><strong>Minimum Payout:</strong> 0.1 YTN / 0.1 KOTO</p>
-                        <p><strong>Payout Threshold:</strong> 0.5 YTN / 0.5 KOTO</p>
+                        <p><strong>Minimum Payout:</strong> 0.1 YTN</p>
+                        <p><strong>Payout Threshold:</strong> 0.5 YTN</p>
                         <p><strong>Payout Method:</strong> PPLNS</p>
                     </div>
                 </div>
@@ -320,20 +277,18 @@ date_default_timezone_set('UTC');
                         document.getElementById('total-miners').textContent = formatNumber(data.total.active_miners);
                         document.getElementById('total-blocks').textContent = formatNumber(data.total.blocks_found);
 
-                        // Update individual coin stats
-                        ['yenten', 'koto'].forEach(coin => {
-                            if (data.coins[coin]) {
-                                const coinData = data.coins[coin];
-                                
-                                document.getElementById(`${coin}-hashrate`).textContent = formatHashrate(coinData.pool_hashrate);
-                                document.getElementById(`${coin}-miners`).textContent = formatNumber(coinData.active_miners);
-                                document.getElementById(`${coin}-blocks`).textContent = formatNumber(coinData.blocks_found);
-                                document.getElementById(`${coin}-height`).textContent = formatNumber(coinData.block_height);
-                                document.getElementById(`${coin}-difficulty`).textContent = formatNumber(coinData.network_difficulty);
-                                document.getElementById(`${coin}-network-hashrate`).textContent = formatHashrate(coinData.network_hashrate);
-                                document.getElementById(`${coin}-last-block`).textContent = formatTimestamp(coinData.last_block_time);
-                            }
-                        });
+                        // Update Yenten stats
+                        if (data.coins && data.coins.yenten) {
+                            const coinData = data.coins.yenten;
+                            
+                            document.getElementById('yenten-hashrate').textContent = formatHashrate(coinData.pool_hashrate);
+                            document.getElementById('yenten-miners').textContent = formatNumber(coinData.active_miners);
+                            document.getElementById('yenten-blocks').textContent = formatNumber(coinData.blocks_found);
+                            document.getElementById('yenten-height').textContent = formatNumber(coinData.block_height);
+                            document.getElementById('yenten-difficulty').textContent = formatNumber(coinData.network_difficulty);
+                            document.getElementById('yenten-network-hashrate').textContent = formatHashrate(coinData.network_hashrate);
+                            document.getElementById('yenten-last-block').textContent = formatTimestamp(coinData.last_block_time);
+                        }
 
                         // Update last updated time
                         document.getElementById('last-updated').textContent = new Date().toLocaleString();

@@ -1,17 +1,11 @@
 <?php
-/**
- * Simple Miners API - Working Version
- */
-
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 
 try {
-    // Database connection
     $pdo = new PDO('mysql:host=localhost;port=3306;dbname=yenten_pool', 'pool_user', 'D|Hm3"K12<Zv');
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
-    // Simple query to get miners with shares
     $stmt = $pdo->query("
         SELECT 
             u.id as user_id,
@@ -43,7 +37,7 @@ try {
             'user_id' => (int)$row['user_id'],
             'username' => $row['username'],
             'share_count' => (int)$row['share_count'],
-            'estimated_hashrate' => (int)$row['share_count'] * 0.1, // Simple estimate
+            'estimated_hashrate' => (int)$row['share_count'] * 0.1,
             'last_share' => $row['last_share'],
             'shares_last_24h' => (int)$row['share_count']
         ];

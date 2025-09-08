@@ -66,7 +66,7 @@ function getConfig($key, $default = '') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars(getConfig('pool.name', 'Isekai Multi-Coin Pool')); ?> - Yenten & KOTO Mining Pool</title>
+    <title><?php echo htmlspecialchars(getConfig('pool.name', 'Isekai Pool')); ?> - Yenten Mining Pool</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -98,6 +98,7 @@ function getConfig($key, $default = '') {
                 <a class="nav-link" href="/stats.php">Pool Stats</a>
                 <a class="nav-link" href="/miners.php">Top Miners</a>
                 <a class="nav-link" href="/blocks.php">Recent Blocks</a>
+                <a class="nav-link" href="/wallet.php">Wallet</a>
                 <a class="nav-link" href="/help.php">Help</a>
             </div>
         </div>
@@ -109,9 +110,9 @@ function getConfig($key, $default = '') {
             <div class="row text-center">
                 <div class="col-12">
                     <h1 class="display-4 mb-4">
-                        <i class="fas fa-server"></i> Multi-Coin Mining Pool
+                        <i class="fas fa-server"></i> Yenten Mining Pool
                     </h1>
-                    <p class="lead">Mine Yenten (YTN) and KOTO (KOTO) with our reliable and efficient mining pool</p>
+                    <p class="lead">Mine Yenten (YTN) with our reliable and efficient mining pool</p>
                 </div>
             </div>
             
@@ -149,7 +150,7 @@ function getConfig($key, $default = '') {
 
             <!-- Blockchain Sync Status -->
             <div class="row mt-4 justify-content-center">
-                <div class="col-md-5 mb-4">
+                <div class="col-md-6 mb-4">
                     <div class="stat-card rounded p-4">
                         <h5><i class="fas fa-coins text-warning"></i> Yenten (YTN) Sync Status</h5>
                         <div class="progress mb-2" style="height: 25px;">
@@ -168,25 +169,6 @@ function getConfig($key, $default = '') {
                         </div>
                     </div>
                 </div>
-                <div class="col-md-5 mb-4">
-                    <div class="stat-card rounded p-4">
-                        <h5><i class="fas fa-coins text-success"></i> KOTO (KOTO) Sync Status</h5>
-                        <div class="progress mb-2" style="height: 25px;">
-                            <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" 
-                                 role="progressbar" id="koto-progress" style="width: 0%">
-                                <span id="koto-progress-text">Loading...</span>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-6">
-                                <small><strong>Block Height:</strong> <span id="koto-height">0</span></small>
-                            </div>
-                            <div class="col-6">
-                                <small><strong>Status:</strong> <span id="koto-status">Connecting...</span></small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -200,13 +182,13 @@ function getConfig($key, $default = '') {
                     <div class="row">
                         <div class="col-md-6">
                             <p><strong>Pool URL:</strong> <?php echo htmlspecialchars(getConfig('pool.url', 'https://mining.isekai-pool.com')); ?></p>
-                            <p><strong>Supported Coins:</strong> Yenten (YTN) & KOTO (KOTO)</p>
+                            <p><strong>Supported Coin:</strong> Yenten (YTN)</p>
                             <p><strong>Pool Fee:</strong> <?php echo getConfig('pool.fee_percent', 1.0); ?>%</p>
                         </div>
                         <div class="col-md-6">
                             <p><strong>Payout Method:</strong> PPLNS</p>
-                            <p><strong>Minimum Payout:</strong> 0.1 YTN / 0.1 KOTO</p>
-                            <p><strong>Payout Threshold:</strong> 0.5 YTN / 0.5 KOTO</p>
+                            <p><strong>Minimum Payout:</strong> 0.1 YTN</p>
+                            <p><strong>Payout Threshold:</strong> 0.5 YTN</p>
                         </div>
                     </div>
                 </div>
@@ -228,23 +210,13 @@ function getConfig($key, $default = '') {
                         </div>
                     </div>
 
-                    <!-- KOTO Mining -->
-                    <div class="mb-4">
-                        <h5><i class="fas fa-coins text-success"></i> KOTO (KOTO) Mining</h5>
-                        <p><strong>Algorithm:</strong> Yescrypt</p>
-                        <p><strong>Port:</strong> 4444</p>
-                        <p><strong>Username:</strong> Your KOTO wallet address</p>
-                        <p><strong>Password:</strong> x (or any password)</p>
-                        <div class="alert alert-info">
-                            <strong>Example:</strong> ccminer -a yescrypt -o stratum+tcp://mining.isekai-pool.com:4444 -u YOUR_KOTO_ADDRESS -p x
-                        </div>
-                    </div>
 
 
                     <!-- Additional Ports -->
                     <div class="mb-4">
                         <h5><i class="fas fa-server text-primary"></i> Additional Ports</h5>
-                        <p><strong>Port 5555:</strong> Backup/Alternative (Default: Yenten)</p>
+                        <p><strong>Port 4444:</strong> Alternative Yenten port</p>
+                        <p><strong>Port 5555:</strong> Backup Yenten port</p>
                     </div>
                 </div>
             </div>
@@ -260,11 +232,8 @@ function getConfig($key, $default = '') {
                         
                         <!-- Coin Selection -->
                         <div class="mb-3">
-                            <label class="form-label">Select Coin:</label>
-                            <select class="form-select" id="coin-select" onchange="updateMiningForm()">
-                                <option value="yenten">Yenten (YTN) - YespowerR16</option>
-                                <option value="koto">KOTO (KOTO) - Yescrypt</option>
-                            </select>
+                            <label class="form-label">Mining Coin:</label>
+                            <div class="form-control-plaintext">Yenten (YTN) - YespowerR16</div>
                         </div>
 
                         <!-- Wallet Address -->
@@ -302,45 +271,28 @@ function getConfig($key, $default = '') {
     <footer class="bg-dark text-light py-4 mt-5">
         <div class="container text-center">
             <p>&copy; <?=date('Y');?> <?php echo htmlspecialchars(getConfig('pool.name', 'Isekai Multi-Coin Pool')); ?>. All rights reserved. Maintained by <a href="https://isekai-pool.com" target="_blank">Isekai Pool</a></a></p>
-            <p>Mining Yenten (YTN) & KOTO (KOTO) - Secure, Reliable, Profitable</p>
+            <p>Mining Yenten (YTN) - Secure, Reliable, Profitable</p>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Update mining form based on coin selection
+        // Update mining form (simplified for Yenten only)
         function updateMiningForm() {
-            const coinSelect = document.getElementById('coin-select');
-            const walletLabel = document.getElementById('wallet-label');
-            const walletInput = document.getElementById('wallet-address');
-            
-            if (coinSelect.value === 'yenten') {
-                walletLabel.textContent = 'Your Yenten Address:';
-                walletInput.placeholder = 'Enter your YTN address';
-            } else if (coinSelect.value === 'koto') {
-                walletLabel.textContent = 'Your KOTO Address:';
-                walletInput.placeholder = 'Enter your KOTO address';
-            }
+            // No longer needed since we only support Yenten
         }
 
-        // Generate mining command
+        // Generate mining command (Yenten only)
         function generateMiningCommand() {
             const walletAddress = document.getElementById('wallet-address').value;
-            const coinSelect = document.getElementById('coin-select');
             
             if (!walletAddress) {
                 alert('Please enter your wallet address');
                 return;
             }
             
-            let command = '';
             const poolHost = '<?php echo parse_url(getConfig('pool.url', 'https://mining.isekai-pool.com'), PHP_URL_HOST); ?>';
-            
-            if (coinSelect.value === 'yenten') {
-                command = `ccminer -a YespowerR16 -o stratum+tcp://${poolHost}:3333 -u ${walletAddress} -p x`;
-            } else if (coinSelect.value === 'koto') {
-                command = `ccminer -a yescrypt -o stratum+tcp://${poolHost}:4444 -u ${walletAddress} -p x`;
-            }
+            const command = `ccminer -a YespowerR16 -o stratum+tcp://${poolHost}:3333 -u ${walletAddress} -p x`;
             
             document.getElementById('mining-command').value = command;
         }
@@ -373,31 +325,6 @@ function getConfig($key, $default = '') {
                     document.getElementById('yenten-progress').classList.add('bg-danger');
                 });
 
-            // Update KOTO status
-            fetch('/api/blockchain-status.php?coin=koto')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        const progress = Math.min(data.progress * 100, 100);
-                        document.getElementById('koto-progress').style.width = progress + '%';
-                        document.getElementById('koto-progress-text').textContent = progress.toFixed(2) + '%';
-                        document.getElementById('koto-height').textContent = data.height.toLocaleString();
-                        document.getElementById('koto-status').textContent = data.synced ? 'Synced' : 'Syncing...';
-                        
-                        if (data.synced) {
-                            document.getElementById('koto-progress').classList.remove('progress-bar-animated');
-                            document.getElementById('koto-progress').classList.add('bg-success');
-                        }
-                    } else {
-                        document.getElementById('koto-status').textContent = 'Error: ' + data.error;
-                        document.getElementById('koto-progress').classList.add('bg-danger');
-                    }
-                })
-                .catch(error => {
-                    console.error('KOTO status error:', error);
-                    document.getElementById('koto-status').textContent = 'Connection Error';
-                    document.getElementById('koto-progress').classList.add('bg-danger');
-                });
 
         }
 
