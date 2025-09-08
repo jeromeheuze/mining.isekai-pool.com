@@ -22,8 +22,8 @@ if (file_exists($configFile)) {
 try {
     $dbConfig = $config['database'] ?? [];
     $pdo = new PDO(
-        "mysql:host={$dbConfig['host']};dbname={$dbConfig['name']};charset=utf8mb4",
-        $dbConfig['user'],
+        "mysql:host={$dbConfig['host']};port={$dbConfig['port']};dbname={$dbConfig['name']};charset=utf8mb4",
+        $dbConfig['username'],
         $dbConfig['password'],
         [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
     );
@@ -54,28 +54,33 @@ try {
     }
 
     foreach ($supportedCoins as $coinName) {
-        // Get top miners for this coin
+        // Get top miners for this coin based on shares table
         $stmt = $pdo->prepare("
             SELECT 
-                w.worker_name,
-                w.user_id,
-                u.username,
+                u.id as user_id,
+                u.address as username,
+                u.username as display_name,
                 COUNT(s.id) as share_count,
                 AVG(s.difficulty) as avg_difficulty,
-                MAX(s.created_at) as last_share,
-                MIN(s.created_at) as first_share,
-                SUM(CASE WHEN s.created_at > DATE_SUB(NOW(), INTERVAL 1 HOUR) THEN 1 ELSE 0 END) as shares_last_hour,
-                SUM(CASE WHEN s.created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR) THEN 1 ELSE 0 END) as shares_last_24h
-            FROM workers w
-            LEFT JOIN users u ON w.user_id = u.id
-            LEFT JOIN shares s ON w.id = s.worker_id AND s.coin = ?
-            WHERE w.coin = ? AND s.created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)
-            GROUP BY w.id, w.worker_name, w.user_id, u.username
+                MAX(s.submitted_at) as last_share,
+                MIN(s.submitted_at) as first_share,
+                SUM(CASE WHEN s.submitted_at > DATE_SUB(NOW(), INTERVAL 1 HOUR) THEN 1 ELSE 0 END) as shares_last_hour,
+                SUM(CASE WHEN s.submitted_at > DATE_SUB(NOW(), INTERVAL 24 HOUR) THEN 1 ELSE 0 END) as shares_last_24h,
+                s.worker_id,
+                CASE 
+                    WHEN s.worker_id = 1 THEN CONCAT(u.address, ' (Main)')
+                    WHEN s.worker_id = 2 THEN CONCAT(u.address, ' (HiveOS)')
+                    ELSE CONCAT(u.address, ' (Worker ', s.worker_id, ')')
+                END as worker_name
+            FROM users u
+            INNER JOIN shares s ON u.id = s.user_id AND s.coin = ?
+            WHERE s.submitted_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)
+            GROUP BY u.id, u.address, u.username, s.worker_id
             HAVING share_count > 0
             ORDER BY share_count DESC
             LIMIT ?
         ");
-        $stmt->execute([$coinName, $coinName, $limit]);
+        $stmt->execute([$coinName, $limit]);
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($results as $row) {
@@ -87,7 +92,7 @@ try {
                 'coin' => $coinName,
                 'worker_name' => $row['worker_name'],
                 'user_id' => (int)$row['user_id'],
-                'username' => $row['username'] ?? 'Unknown',
+                'username' => $row['display_name'] ?: $row['username'],
                 'share_count' => (int)$row['share_count'],
                 'avg_difficulty' => (float)($row['avg_difficulty'] ?? 0),
                 'estimated_hashrate' => $estimatedHashrate,

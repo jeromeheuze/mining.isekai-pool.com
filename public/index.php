@@ -403,8 +403,46 @@ function getConfig($key, $default = '') {
 
         // Auto-refresh pool stats every 30 seconds
         function updatePoolStats() {
-            // This will be implemented with AJAX calls to the API
             console.log('Updating pool stats...');
+            
+            // Fetch pool stats from API
+            fetch('/api/pool-stats.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update pool hashrate
+                        const hashrate = data.total.pool_hashrate || 0;
+                        document.getElementById('pool-hashrate').textContent = formatHashrate(hashrate);
+                        
+                        // Update active miners
+                        const miners = data.total.active_miners || 0;
+                        document.getElementById('active-miners').textContent = miners;
+                        
+                        // Update blocks found
+                        const blocks = data.total.blocks_found || 0;
+                        document.getElementById('blocks-found').textContent = blocks;
+                        
+                        console.log('Pool stats updated:', data);
+                    } else {
+                        console.error('Failed to fetch pool stats:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching pool stats:', error);
+                });
+        }
+        
+        // Format hashrate for display
+        function formatHashrate(hashrate) {
+            if (hashrate >= 1000000000) {
+                return (hashrate / 1000000000).toFixed(2) + ' GH/s';
+            } else if (hashrate >= 1000000) {
+                return (hashrate / 1000000).toFixed(2) + ' MH/s';
+            } else if (hashrate >= 1000) {
+                return (hashrate / 1000).toFixed(2) + ' KH/s';
+            } else {
+                return hashrate.toFixed(0) + ' H/s';
+            }
         }
 
         // Initialize

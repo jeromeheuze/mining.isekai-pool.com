@@ -22,8 +22,8 @@ if (file_exists($configFile)) {
 try {
     $dbConfig = $config['database'] ?? [];
     $pdo = new PDO(
-        "mysql:host={$dbConfig['host']};dbname={$dbConfig['name']};charset=utf8mb4",
-        $dbConfig['user'],
+        "mysql:host={$dbConfig['host']};port={$dbConfig['port']};dbname={$dbConfig['name']};charset=utf8mb4",
+        $dbConfig['username'],
         $dbConfig['password'],
         [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
     );
@@ -54,23 +54,23 @@ try {
     }
 
     foreach ($supportedCoins as $coinName) {
-        // Get recent blocks for this coin
+        // Get recent blocks for this coin (if any exist)
         $stmt = $pdo->prepare("
             SELECT 
                 b.*,
-                w.worker_name,
-                u.username,
-                COUNT(s.id) as share_count
+                u.address as username,
+                CASE 
+                    WHEN b.found_by_worker_id = 1 THEN CONCAT(u.address, ' (Main)')
+                    WHEN b.found_by_worker_id = 2 THEN CONCAT(u.address, ' (HiveOS)')
+                    ELSE CONCAT(u.address, ' (Worker ', b.found_by_worker_id, ')')
+                END as worker_name
             FROM blocks b
-            LEFT JOIN workers w ON b.worker_id = w.id
-            LEFT JOIN users u ON w.user_id = u.id
-            LEFT JOIN shares s ON b.id = s.block_id
-            WHERE b.coin = ?
-            GROUP BY b.id
+            LEFT JOIN users u ON b.found_by_user_id = u.id
+            WHERE b.coin = ? OR ? = 'all'
             ORDER BY b.created_at DESC
             LIMIT ?
         ");
-        $stmt->execute([$coinName, $limit]);
+        $stmt->execute([$coinName, $coinName, $limit]);
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($results as $row) {
@@ -93,16 +93,16 @@ try {
             $blocks['blocks'][] = [
                 'id' => (int)$row['id'],
                 'coin' => $coinName,
-                'block_hash' => $row['block_hash'],
-                'block_height' => (int)$row['block_height'],
+                'block_hash' => $row['hash'],
+                'block_height' => (int)$row['height'],
                 'difficulty' => (float)$row['difficulty'],
-                'reward' => (float)$row['reward'],
-                'status' => $row['status'],
+                'reward' => (float)$row['pool_reward'],
+                'status' => $row['is_confirmed'] ? 'confirmed' : 'pending',
                 'created_at' => $row['created_at'],
                 'time_ago' => $timeAgo,
-                'worker_name' => $row['worker_name'],
+                'worker_name' => $row['worker_name'] ?? 'Unknown',
                 'username' => $row['username'] ?? 'Unknown',
-                'share_count' => (int)$row['share_count'],
+                'share_count' => 0, // Will be calculated separately if needed
                 'confirmed_at' => $row['confirmed_at']
             ];
         }
