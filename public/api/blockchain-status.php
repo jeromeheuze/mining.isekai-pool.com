@@ -30,69 +30,19 @@ if (!in_array($coin, ['yenten', 'koto', 'ukkeycoin'])) {
 }
 
 try {
-    // Get coin configuration
-    $coinConfig = [];
-    if ($coin === 'yenten') {
-        $coinConfig = [
-            'host' => $config['yenten']['daemon_host'] ?? 'localhost',
-            'port' => $config['yenten']['daemon_port'] ?? 9982,
-            'user' => $config['yenten']['daemon_user'] ?? 'yenten_rpc_user',
-            'password' => $config['yenten']['daemon_password'] ?? '4rlcawahlfrovIchEtrlcre0huWakephl0'
-        ];
-    } else if ($coin === 'koto') {
-        $coinConfig = [
-            'host' => $config['koto']['daemon_host'] ?? 'localhost',
-            'port' => $config['koto']['daemon_port'] ?? 9983,
-            'user' => $config['koto']['daemon_user'] ?? 'koto_rpc_user',
-            'password' => $config['koto']['daemon_password'] ?? 'koto_rpc_password'
-        ];
-    } else if ($coin === 'ukkeycoin') {
-        $coinConfig = [
-            'host' => $config['ukkeycoin']['daemon_host'] ?? 'localhost',
-            'port' => $config['ukkeycoin']['daemon_port'] ?? 9985,
-            'user' => $config['ukkeycoin']['daemon_user'] ?? 'uky_rpc_user',
-            'password' => $config['ukkeycoin']['daemon_password'] ?? 'uky_rpc_password'
-        ];
-    }
-
-    // Make RPC call
-    $rpcUrl = "http://{$coinConfig['host']}:{$coinConfig['port']}";
-    $rpcData = [
-        'jsonrpc' => '1.0',
-        'id' => 'status_check',
-        'method' => 'getblockchaininfo',
-        'params' => []
-    ];
-
-    $context = stream_context_create([
-        'http' => [
-            'method' => 'POST',
-            'header' => [
-                'Content-Type: application/json',
-                'Authorization: Basic ' . base64_encode($coinConfig['user'] . ':' . $coinConfig['password'])
-            ],
-            'content' => json_encode($rpcData),
-            'timeout' => 10
-        ]
-    ]);
-
-    $response = file_get_contents($rpcUrl, false, $context);
+    // Use the wrapper script to get blockchain info
+    $command = "sudo /usr/local/bin/get-blockchain-info $coin";
+    $output = shell_exec($command . ' 2>&1');
     
-    if ($response === false) {
+    if (empty($output)) {
         throw new Exception('Failed to connect to ' . $coin . ' daemon');
     }
 
-    $data = json_decode($response, true);
+    $result = json_decode($output, true);
     
-    if (isset($data['error'])) {
-        throw new Exception($data['error']['message'] ?? 'RPC error');
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        throw new Exception('Invalid JSON response from daemon: ' . $output);
     }
-
-    if (!isset($data['result'])) {
-        throw new Exception('Invalid response from daemon');
-    }
-
-    $result = $data['result'];
     
     // Calculate progress
     $progress = 0;
