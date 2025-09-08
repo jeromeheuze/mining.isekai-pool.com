@@ -118,8 +118,16 @@ date_default_timezone_set('UTC');
                             <button class="btn btn-primary" onclick="loadWalletData()">
                                 <i class="fas fa-search"></i> Lookup
                             </button>
+                            <button class="btn btn-outline-secondary" onclick="clearWalletMemory()" title="Clear remembered wallet">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
                         <small class="text-muted">Enter your Yenten wallet address to view your mining statistics and earnings.</small>
+                        <div id="remembered-wallet-info" class="mt-2" style="display: none;">
+                            <small class="text-success">
+                                <i class="fas fa-memory"></i> Wallet address remembered from previous visit
+                            </small>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -286,6 +294,9 @@ date_default_timezone_set('UTC');
                 return;
             }
 
+            // Save wallet address to localStorage
+            localStorage.setItem('yenten_pool_wallet', walletAddress);
+            
             // Show wallet info section
             document.getElementById('wallet-info').style.display = 'block';
             
@@ -300,6 +311,8 @@ date_default_timezone_set('UTC');
                 .then(data => {
                     if (data.success) {
                         displayWalletData(data);
+                        // Also load payouts
+                        loadPayouts(walletAddress);
                     } else {
                         console.error('Failed to fetch wallet data:', data.error);
                         alert('Failed to load wallet data: ' + data.error);
@@ -424,8 +437,32 @@ date_default_timezone_set('UTC');
             container.style.display = 'block';
         }
 
+        // Clear wallet memory
+        function clearWalletMemory() {
+            localStorage.removeItem('yenten_pool_wallet');
+            document.getElementById('wallet-address').value = '';
+            document.getElementById('wallet-info').style.display = 'none';
+            document.getElementById('remembered-wallet-info').style.display = 'none';
+        }
+        
+        // Load remembered wallet on page load
+        function loadRememberedWallet() {
+            const rememberedWallet = localStorage.getItem('yenten_pool_wallet');
+            if (rememberedWallet) {
+                document.getElementById('wallet-address').value = rememberedWallet;
+                document.getElementById('remembered-wallet-info').style.display = 'block';
+                
+                // Auto-load wallet data if remembered
+                document.getElementById('wallet-info').style.display = 'block';
+                fetchWalletData(rememberedWallet);
+            }
+        }
+        
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
+            // Load remembered wallet on page load
+            loadRememberedWallet();
+            
             // Auto-refresh every 30 seconds if wallet is loaded
             setInterval(function() {
                 const walletAddress = document.getElementById('wallet-address').value.trim();
