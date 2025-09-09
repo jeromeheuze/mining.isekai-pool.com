@@ -5,6 +5,7 @@ namespace YentenPool\Classes;
 use YentenPool\Config\ConfigManager;
 use YentenPool\Database\Database;
 use YentenPool\Classes\UkkeyCoinRPC;
+use YentenPool\Classes\RinCoinRPC;
 
 /**
  * Work Manager for Yenten Mining Pool
@@ -16,6 +17,7 @@ class WorkManager
     private $db;
     private $yentenRPC;
     private $ukkeyCoinRPC;
+    private $rinCoinRPC;
     private $currentWork;
     private $lastWorkUpdate;
     private $workUpdateInterval;
@@ -26,6 +28,7 @@ class WorkManager
         $this->db = Database::getInstance();
         $this->yentenRPC = new YentenRPC();
         $this->ukkeyCoinRPC = new UkkeyCoinRPC();
+        $this->rinCoinRPC = new RinCoinRPC();
         $this->workUpdateInterval = 30; // Update work every 30 seconds
         $this->lastWorkUpdate = 0;
     }
@@ -61,11 +64,18 @@ class WorkManager
                 return;
             }
             
-            // Get block template
-            $template = $rpc->getBlockTemplate([
-                'rules' => ['segwit'],
-                'capabilities' => ['proposal']
-            ]);
+            // Get block template with coin-specific rules
+            if ($coin === 'rincoin') {
+                $template = $rpc->getBlockTemplate([
+                    'rules' => ['mweb', 'segwit'],
+                    'capabilities' => ['proposal']
+                ]);
+            } else {
+                $template = $rpc->getBlockTemplate([
+                    'rules' => ['segwit'],
+                    'capabilities' => ['proposal']
+                ]);
+            }
             
             if (!$template) {
                 throw new \Exception("Failed to get block template");
@@ -102,6 +112,8 @@ class WorkManager
                 return $this->yentenRPC;
             case 'ukkeycoin':
                 return $this->ukkeyCoinRPC;
+            case 'rincoin':
+                return $this->rinCoinRPC;
             default:
                 return $this->yentenRPC;
         }
@@ -245,6 +257,7 @@ class WorkManager
                 'ntime' => $work['ntime'],
                 'target' => $work['target'],
                 'difficulty' => $work['difficulty'],
+                'coin' => $work['coin'],
                 'created_at' => date('Y-m-d H:i:s', $work['created_at'])
             ]);
             
