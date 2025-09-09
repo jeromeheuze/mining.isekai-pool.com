@@ -7,6 +7,7 @@ use YentenPool\Database\Database;
 use YentenPool\Classes\YentenRPC;
 use YentenPool\Classes\KotoRPC;
 use YentenPool\Classes\UkkeyCoinRPC;
+use YentenPool\Classes\RinCoinRPC;
 
 /**
  * Stratum Server for Yenten Mining Pool
@@ -19,6 +20,7 @@ class StratumServer
     private $yentenRPC;
     private $kotoRPC;
     private $ukkeyCoinRPC;
+    private $rinCoinRPC;
     private $sockets = [];
     private $clients = [];
     private $running = false;
@@ -35,6 +37,7 @@ class StratumServer
         $this->yentenRPC = new YentenRPC();
         $this->kotoRPC = new KotoRPC();
         $this->ukkeyCoinRPC = new UkkeyCoinRPC();
+        $this->rinCoinRPC = new RinCoinRPC();
         $this->logFile = __DIR__ . '/../../logs/stratum.log';
         $this->setupLogging();
     }
@@ -76,7 +79,7 @@ class StratumServer
             case 4444:
                 return 'koto';
             case 5555:
-                return 'yenten'; // Default to yenten for now
+                return 'rincoin';
             case 6666:
                 return 'ukkeycoin';
             default:
@@ -96,6 +99,8 @@ class StratumServer
                 return $this->kotoRPC;
             case 'ukkeycoin':
                 return $this->ukkeyCoinRPC;
+            case 'rincoin':
+                return $this->rinCoinRPC;
             default:
                 return $this->yentenRPC;
         }
