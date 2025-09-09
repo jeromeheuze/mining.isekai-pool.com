@@ -2,25 +2,31 @@
 
 namespace YentenPool\Classes;
 
+use YentenPool\Config\ConfigManager;
+
 /**
  * RinCoin RPC Client
  * Handles communication with RinCoin daemon
  */
 class RinCoinRPC
 {
+    private $config;
     private $host;
     private $port;
     private $username;
     private $password;
     private $timeout;
 
-    public function __construct($host = 'localhost', $port = 9332, $username = '', $password = '', $timeout = 30)
+    public function __construct()
     {
-        $this->host = $host;
-        $this->port = $port;
-        $this->username = $username;
-        $this->password = $password;
-        $this->timeout = $timeout;
+        $this->config = ConfigManager::getInstance();
+        $rincoinConfig = $this->config->getRincoinConfig();
+        
+        $this->host = $rincoinConfig['daemon_host'];
+        $this->port = $rincoinConfig['daemon_port'];
+        $this->username = $rincoinConfig['daemon_user'];
+        $this->password = $rincoinConfig['daemon_password'];
+        $this->timeout = 30;
     }
 
     /**

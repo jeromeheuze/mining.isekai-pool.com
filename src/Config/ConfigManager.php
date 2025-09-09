@@ -214,6 +214,20 @@ class ConfigManager
     }
 
     /**
+     * Get RinCoin daemon configuration
+     */
+    public function getRincoinConfig()
+    {
+        return [
+            'daemon_host' => $this->get('rincoin.daemon_host'),
+            'daemon_port' => $this->get('rincoin.daemon_port'),
+            'daemon_user' => $this->get('rincoin.daemon_user'),
+            'daemon_password' => $this->get('rincoin.daemon_password'),
+            'wallet_address' => $this->get('rincoin.wallet_address')
+        ];
+    }
+
+    /**
      * Get security configuration
      */
     public function getSecurityConfig()
