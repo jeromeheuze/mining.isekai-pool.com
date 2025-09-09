@@ -114,6 +114,10 @@ class RinCoinRPC
      */
     public function getBlockTemplate($params = [])
     {
+        // RinCoin requires specific rules for getblocktemplate
+        if (empty($params)) {
+            $params = ['rules' => ['mweb', 'segwit']];
+        }
         return $this->call('getblocktemplate', [$params]);
     }
 
